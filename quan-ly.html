@@ -443,7 +443,7 @@ async function luuThongTin() {
         }
     });
 
-    const { value: password, isConfirmed } = await Swal.fire({ title: '🔒 Xác nhận Admin', text: 'Mã bảo mật 888:', input: 'password', showCancelButton: true });
+    const { value: password, isConfirmed } = await Swal.fire({ title: '🔒 Xác nhận Admin', text: 'Mã bảo mật :', input: 'password', showCancelButton: true });
     if (!isConfirmed || password !== "888") return;
 
     const id = document.getElementById('edit-id').value;
@@ -591,7 +591,7 @@ async function xoaTruongTrongModal() {
 
     const { value: password, isConfirmed } = await Swal.fire({
         title: '⚠️ XÓA!',
-        text: 'Mã bảo mật 888:',
+        text: 'Mã bảo mật:',
         icon: 'warning',
         input: 'password',
         showCancelButton: true

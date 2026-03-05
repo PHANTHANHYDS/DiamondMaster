@@ -107,7 +107,7 @@
     </div>
 
     <script>
-        fetch('http://localhost:3000/api/danh-sach-truong')
+        fetch('https://diamondmaster.onrender.com/api/danh-sach-truong')
             .then(res => res.json())
             .then(data => phanTichDuLieu(data))
             .catch(err => console.error(err));
