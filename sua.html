@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sửa Thông Tin Trường</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        body { font-family: 'Roboto', sans-serif; background-color: #f0f2f5; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .form-container { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
+        h2 { color: #1a73e8; text-align: center; margin-top: 0; margin-bottom: 25px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 500; color: #444; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 15px; box-sizing: border-box; }
+        .btn-group { display: flex; gap: 15px; margin-top: 30px; }
+        .btn { flex: 1; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-align: center; text-decoration: none; display: block; }
+        .btn-save { background: #1a73e8; color: white; }
+        .btn-cancel { background: #e0e0e0; color: #333; }
+    </style>
+</head>
+<body>
+
+    <div class="form-container">
+        <h2><i class="fas fa-edit"></i> SỬA THÔNG TIN</h2>
+        
+        <form id="form-sua">
+            <div class="form-group">
+                <label>Tên Trường</label>
+                <input type="text" id="tenTruong" required>
+            </div>
+
+            <div class="form-group">
+                <label style="color: #137333;"><i class="fas fa-link"></i> Link Điểm Danh</label>
+                <input type="text" id="diemDanh" placeholder="Dán link https://... vào đây">
+            </div>
+
+            <div class="form-group">
+                <label>Khu Vực</label>
+                <select id="khuVuc">
+                    <option value="Tp. Thủ Đức">Tp. Thủ Đức</option>
+                    <option value="Quận 1">Quận 1</option>
+                    <option value="Quận 3">Quận 3</option>
+                    <option value="Quận 4">Quận 4</option>
+                    <option value="Quận 5">Quận 5</option>
+                    <option value="Quận 6">Quận 6</option>
+                    <option value="Quận 7">Quận 7</option>
+                    <option value="Quận 8">Quận 8</option>
+                    <option value="Quận 10">Quận 10</option>
+                    <option value="Quận 11">Quận 11</option>
+                    <option value="Quận 12">Quận 12</option>
+                    <option value="Bình Thạnh">Bình Thạnh</option>
+                    <option value="Bình Tân">Bình Tân</option>
+                    <option value="Gò Vấp">Gò Vấp</option>
+                    <option value="Phú Nhuận">Phú Nhuận</option>
+                    <option value="Tân Bình">Tân Bình</option>
+                    <option value="Tân Phú">Tân Phú</option>
+                    <option value="Bình Chánh">Bình Chánh</option>
+                    <option value="Cần Giờ">Cần Giờ</option>
+                    <option value="Củ Chi">Củ Chi</option>
+                    <option value="Hóc Môn">Hóc Môn</option>
+                    <option value="Nhà Bè">Nhà Bè</option>
+                    <option value="Vũng Tàu">Vũng Tàu</option>
+                    <option value="Khác">Khác</option>
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>Trạng Thái Thi</label>
+                    <select id="trangThaiThi">
+                        <option value="-">Chưa có</option>
+                        <option value="Chưa thi">Chưa thi</option>
+                        <option value="Đã thi">Đã thi</option>
+                    </select>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Hạng (Rank)</label>
+                    <select id="hang">
+                        <option value="-">Chưa có</option>
+                        <option value="A">Hạng A</option>
+                        <option value="B">Hạng B</option>
+                        <option value="C">Hạng C</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Người Quản Lý</label>
+                <input type="text" id="quanLy">
+            </div>
+
+            <div class="form-group">
+                <label>Nhân Sự</label>
+                <input type="text" id="nhanSu">
+            </div>
+
+            <div class="form-group" style="background: #fff4e5; padding: 10px; border-radius: 6px; border: 1px dashed #fbbc04;">
+                <label style="color: #d93025;">🔑 Password</label>
+                <input type="password" id="maBaoMat" required placeholder="">
+            </div>
+
+            <div class="btn-group">
+                <a href="quan-ly.html" class="btn btn-cancel">Hủy Bỏ</a>
+                <button type="submit" class="btn btn-save">Cập Nhật</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const idTruong = urlParams.get('id');
+
+        if (idTruong) {
+            fetch(`http://localhost:3000/api/lay-truong/${idTruong}`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('tenTruong').value = data.tenTruong || '';
+                    document.getElementById('khuVuc').value = data.khuVuc || 'Khác';
+                    document.getElementById('quanLy').value = data.quanLy || '';
+                    document.getElementById('nhanSu').value = data.nhanSu || '';
+                    document.getElementById('trangThaiThi').value = data.trangThaiThi || '-';
+                    document.getElementById('hang').value = data.hang || '-';
+                    
+                    // 👇 Load link cũ lên để sửa
+                    document.getElementById('diemDanh').value = data.diemDanh || '';
+                })
+                .catch(e => alert('Lỗi tải dữ liệu: ' + e));
+        }
+
+        document.getElementById('form-sua').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const duLieuMoi = {
+                tenTruong: document.getElementById('tenTruong').value,
+                khuVuc: document.getElementById('khuVuc').value,
+                quanLy: document.getElementById('quanLy').value,
+                nhanSu: document.getElementById('nhanSu').value,
+                trangThaiThi: document.getElementById('trangThaiThi').value,
+                hang: document.getElementById('hang').value,
+                
+                // 👇 Lấy link mới sửa gửi lên server
+                diemDanh: document.getElementById('diemDanh').value,
+                
+                maBaoMat: document.getElementById('maBaoMat').value
+            };
+
+            try {
+                const res = await fetch(`http://localhost:3000/api/sua-truong/${idTruong}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(duLieuMoi)
+                });
+
+                if (res.ok) {
+                    alert('✅ Đã sửa thành công!');
+                    window.location.href = 'quan-ly.html';
+                } else {
+                    alert('❌ Lỗi: ' + await res.text());
+                }
+            } catch (err) { alert('Lỗi kết nối: ' + err); }
+        });
+    </script>
+</body>
+</html>

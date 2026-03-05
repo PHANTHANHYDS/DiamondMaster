@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Trường Học</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Roboto', sans-serif; 
+            background-color: #f0f2f5; 
+            padding: 40px; 
+            text-align: center;
+        }
+        h1 { color: #1a73e8; margin-bottom: 30px; }
+        
+        /* Khung chứa danh sách */
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        /* Thẻ trường học (Card) */
+        .card {
+            background: white;
+            width: 300px;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+            text-align: left;
+            border-top: 5px solid #1a73e8; /* Màu xanh chủ đạo */
+        }
+        
+        .card:hover { transform: translateY(-5px); } /* Hiệu ứng bay lên khi di chuột */
+        
+        .card h2 { margin: 0 0 10px; font-size: 18px; color: #333; }
+        .info { color: #555; margin: 5px 0; font-size: 14px; }
+        .badge {
+            background-color: #e8f0fe;
+            color: #1a73e8;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🏫 DANH SÁCH CÁC TRƯỜNG HỌC</h1>
+    
+    <div class="container" id="danh-sach">
+        <p>Đang tải dữ liệu từ Server...</p>
+    </div>
+
+    <script>
+        // Gọi API lấy dữ liệu thô
+        fetch('http://localhost:3000/api/danh-sach-truong')
+            .then(response => response.json())
+            .then(data => {
+                const khuVucHienThi = document.getElementById('danh-sach');
+                khuVucHienThi.innerHTML = ''; // Xóa chữ đang tải
+
+                // Duyệt qua từng trường và vẽ ra thẻ đẹp
+                data.forEach(truong => {
+                    const theHTML = `
+                        <div class="card">
+                            <h2>${truong.tenTruong}</h2>
+                            <p class="info">📍 Khu vực: ${truong.khuVuc}</p>
+                            <p class="info">👥 Sĩ số: <b>${truong.siSo}</b> học sinh</p>
+                            <div style="margin-top:15px">
+                                <span class="badge">Đang hoạt động</span>
+                            </div>
+                        </div>
+                    `;
+                    khuVucHienThi.innerHTML += theHTML;
+                });
+            })
+            .catch(loi => {
+                alert("Lỗi kết nối! Bạn nhớ bật 'node index.js' chưa?");
+            });
+    </script>
+
+</body>
+</html>

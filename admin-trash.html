@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thùng Rác | Diamond Master</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        :root { 
+            --primary-color: #d93025; 
+            --bg-color: #f8f9fa; 
+            --dark-blue: #0d1b2a; 
+            --sidebar-width: 260px;
+            --accent-color: #1a73e8;
+        }
+        
+        body { font-family: 'Roboto', sans-serif; background-color: var(--bg-color); margin: 0; display: flex; }
+
+        /* --- SIDEBAR STYLE (ĐỒNG BỘ TOÀN HỆ THỐNG) --- */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--dark-blue);
+            height: 100vh;
+            position: fixed;
+            color: white;
+            padding: 20px 0;
+            z-index: 1000;
+        }
+        .sidebar-header { text-align: center; padding-bottom: 30px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
+        .sidebar-header h3 { font-size: 18px; letter-spacing: 1px; margin: 0; color: #4cc9f0; text-transform: uppercase; }
+
+        .menu-item {
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-decoration: none;
+            color: rgba(255,255,255,0.7);
+            transition: 0.3s;
+            border-left: 4px solid transparent;
+        }
+        .menu-item:hover, .menu-item.active { background: rgba(255,255,255,0.1); color: white; border-left: 4px solid var(--accent-color); }
+        .menu-item i { width: 20px; text-align: center; }
+
+        /* --- MAIN CONTENT --- */
+        .main-content { 
+            margin-left: var(--sidebar-width); 
+            flex: 1; 
+            padding: 40px; 
+            width: calc(100% - var(--sidebar-width));
+        }
+
+        .header-trash { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .header-trash h2 { color: #d93025; margin: 0; display: flex; align-items: center; gap: 15px; font-size: 24px; }
+
+        .card-trash { 
+            background: white; 
+            border-radius: 16px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05); 
+            overflow: hidden; 
+            border: 1px solid #eee;
+        }
+        
+        .trash-table { width: 100%; border-collapse: collapse; }
+        .trash-table th { background: #fce8e6; color: #c5221f; padding: 18px 15px; text-align: left; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #fad2cf; }
+        .trash-table td { padding: 15px; border-bottom: 1px solid #eee; font-size: 14px; vertical-align: middle; }
+        .trash-table tr:hover { background-color: #fff9f9; }
+        
+        .btn-restore { 
+            background: #e6f4ea; 
+            color: #137333; 
+            border: 1px solid #ceead6; 
+            padding: 8px 15px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: 600; 
+            transition: 0.2s; 
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-restore:hover { background: #34a853; color: white; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(52, 168, 83, 0.2); }
+        
+        .empty-state { text-align: center; padding: 80px 20px; color: #bbb; }
+        .empty-state i { font-size: 60px; margin-bottom: 20px; opacity: 0.2; }
+        .empty-state p { font-size: 18px; font-weight: 500; }
+
+        .tag-info { font-size: 11px; color: #777; display: block; margin-top: 4px; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h3>DIAMOND MASTER</h3>
+        </div>
+        <a href="quan-ly.html" class="menu-item">
+            <i class="fas fa-school"></i> Quản lý Trường
+        </a>
+        <a href="admin-users.html" class="menu-item">
+            <i class="fas fa-users-cog"></i> Quản lý Nhân sự
+        </a>
+        <a href="admin-archives.html" class="menu-item">
+            <i class="fas fa-history"></i> Lịch sử Archive
+        </a>
+        <a href="admin-trash.html" class="menu-item active">
+            <i class="fas fa-trash-alt"></i> Thùng rác
+        </a>
+        <a href="/" class="menu-item" style="margin-top: auto;">
+            <i class="fas fa-sign-out-alt"></i> Đăng xuất
+        </a>
+    </div>
+
+    <div class="main-content">
+        <div class="header-trash">
+            <h2><i class="fas fa-trash-alt"></i> THÙNG RÁC HỆ THỐNG</h2>
+            <div style="font-size: 14px; color: #666; font-weight: 500;">Dữ liệu tạm xóa sẽ lưu trữ tại đây</div>
+        </div>
+
+        <div class="card-trash">
+            <table class="trash-table" id="tableContent">
+                <thead>
+                    <tr>
+                        <th style="width: 50px; text-align: center;">STT</th>
+                        <th>THÔNG TIN TRƯỜNG</th>
+                        <th>KHU VỰC</th>
+                        <th>SALE PHỤ TRÁCH</th>
+                        <th style="text-align: center;">THAO TÁC</th>
+                    </tr>
+                </thead>
+                <tbody id="trashBody">
+                    </tbody>
+            </table>
+            
+            <div id="noData" class="empty-state" style="display: none;">
+                <i class="fas fa-trash-restore"></i>
+                <p>Thùng rác hiện đang trống rỗng!</p>
+                <span style="font-size: 13px;">Các trường bị xóa sẽ xuất hiện ở đây để bạn khôi phục khi cần.</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. Hàm load danh sách trường bị xóa (isDeleted: true)
+        async function loadTrash() {
+            try {
+                const res = await fetch('/api/admin/trash');
+                const data = await res.json();
+                const tbody = document.getElementById('trashBody');
+                const noData = document.getElementById('noData');
+                const table = document.getElementById('tableContent');
+
+                if (data.length === 0) {
+                    tbody.innerHTML = "";
+                    table.style.display = "none";
+                    noData.style.display = "block";
+                    return;
+                }
+
+                noData.style.display = "none";
+                table.style.display = "table";
+                
+                tbody.innerHTML = data.map((t, i) => `
+                    <tr>
+                        <td style="text-align: center; color: #999;">${i + 1}</td>
+                        <td>
+                            <div style="font-weight: 700; color: #d93025; font-size: 15px;">${t.tenTruong}</div>
+                            <span class="tag-info"><i class="fas fa-id-badge"></i> ID: ${t._id.substring(18)}</span>
+                        </td>
+                        <td><i class="fas fa-map-marker-alt" style="color: #999; margin-right: 5px;"></i> ${t.khuVuc}</td>
+                        <td><span style="color: #1a73e8; font-weight: 500;">${t.quanLy || '-'}</span></td>
+                        <td style="text-align: center;">
+                            <button class="btn-restore" onclick="restoreSchool('${t._id}', '${t.tenTruong}')">
+                                <i class="fas fa-undo-alt"></i> KHÔI PHỤC
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (e) { 
+                console.error("Lỗi tải thùng rác:", e); 
+            }
+        }
+
+        // 2. Hàm khôi phục trường học
+        async function restoreSchool(id, name) {
+            const { isConfirmed } = await Swal.fire({
+                title: 'Khôi phục dữ liệu?',
+                text: `Trường "${name}" sẽ được đưa trở lại danh sách quản lý chính.`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#34a853',
+                cancelButtonColor: '#666',
+                confirmButtonText: 'Xác nhận khôi phục',
+                cancelButtonText: 'Hủy'
+            });
+
+            if (isConfirmed) {
+                try {
+                    const res = await fetch(`/api/admin/restore/${id}`, { method: 'POST' });
+                    if (res.ok) {
+                        Swal.fire({
+                            title: 'Thành công!',
+                            text: 'Trường đã được khôi phục thành công.',
+                            icon: 'success',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                        loadTrash();
+                    }
+                } catch (error) {
+                    Swal.fire('Lỗi', 'Không thể kết nối Server!', 'error');
+                }
+            }
+        }
+
+        // Chạy hàm load khi mở trang
+        loadTrash();
+    </script>
+</body>
+</html>

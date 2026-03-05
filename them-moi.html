@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thêm Trường Mới | EduScheduler</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        body { 
+            font-family: 'Roboto', sans-serif; 
+            background-color: #f0f2f5; 
+            margin: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            padding: 20px;
+        }
+
+        .form-card { 
+            background: white; 
+            width: 100%; 
+            max-width: 800px; 
+            border-radius: 16px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1); 
+            overflow: hidden; 
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card-header {
+            background: linear-gradient(135deg, #1a73e8, #1558b0);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .card-header h2 { margin: 0; font-size: 26px; display: flex; align-items: center; justify-content: center; gap: 12px; }
+        .card-header p { margin: 8px 0 0; opacity: 0.8; font-size: 15px; }
+
+        .card-body { padding: 35px; }
+
+        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 20px; }
+        .full-width { grid-column: span 2; }
+
+        .form-group { margin-bottom: 5px; }
+        label { display: block; margin-bottom: 10px; font-weight: 600; color: #444; font-size: 14px; }
+        label i { color: #1a73e8; margin-right: 8px; width: 20px; text-align: center; }
+        label .required { color: #d93025; margin-left: 3px; }
+
+        input, select { 
+            width: 100%; 
+            padding: 12px 16px; 
+            border: 1px solid #dadce0; 
+            border-radius: 10px; 
+            font-size: 15px; 
+            box-sizing: border-box; 
+            transition: all 0.3s; 
+            background: #fdfdfd;
+        }
+        input:focus, select:focus { border-color: #1a73e8; background: white; outline: none; box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.15); }
+
+        /* Style cho TomSelect */
+        .ts-control { border-radius: 10px !important; padding: 12px 16px !important; border: 1px solid #dadce0 !important; background: #fdfdfd !important; }
+        .ts-dropdown { border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid #eee; }
+
+        .security-box {
+            background: #fff9db;
+            border: 1px dashed #fab005;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 15px;
+        }
+        .security-box label { color: #856404; }
+
+        .btn-group { display: flex; gap: 18px; margin-top: 40px; }
+        .btn { 
+            flex: 1; padding: 16px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.3s;
+        }
+        .btn-save { background: #1a73e8; color: white; box-shadow: 0 6px 15px rgba(26, 115, 232, 0.3); }
+        .btn-save:hover { background: #1558b0; transform: translateY(-3px); box-shadow: 0 8px 20px rgba(26, 115, 232, 0.4); }
+        .btn-cancel { background: #f1f3f4; color: #5f6368; }
+        .btn-cancel:hover { background: #e8eaed; color: #3c4043; }
+    </style>
+</head>
+<body>
+
+    <div class="form-card">
+        <div class="card-header">
+            <h2><i class="fas fa-school"></i> THÊM TRƯỜNG MỚI</h2>
+            <p>Hệ thống Diamond Master V124 - Đảm bảo dữ liệu chuẩn hóa</p>
+        </div>
+        
+        <form id="form-them-moi" class="card-body">
+            
+            <div class="row">
+                <div class="form-group">
+                    <label><i class="fas fa-heading"></i> Tên Trường <span class="required">*</span></label>
+                    <input type="text" id="tenTruong" required placeholder="Ví dụ: Tiểu học Đồng Đen...">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-graduation-cap"></i> Cấp Học <span class="required">*</span></label>
+                    <select id="capHoc" required>
+                        <option value="">-- Chọn cấp học --</option>
+                        <option value="Tiểu học">Tiểu học (Khối 1-5)</option>
+                        <option value="THCS">THCS (Khối 6-9)</option>
+                        <option value="THPT">THPT (Khối 10-12)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="form-group">
+                    <label><i class="fas fa-map-marker-alt"></i> Khu Vực <span class="required">*</span></label>
+                    <select id="khuVuc" autocomplete="off" required>
+                        <option value="">Gõ tên quận để tìm...</option>
+                        <optgroup label="Thành Phố">
+                            <option value="Tp. Thủ Đức">Tp. Thủ Đức</option>
+                        </optgroup>
+                        <optgroup label="Các Quận Số">
+                            <option value="Quận 1">Quận 1</option>
+                            <option value="Quận 3">Quận 3</option>
+                            <option value="Quận 4">Quận 4</option>
+                            <option value="Quận 5">Quận 5</option>
+                            <option value="Quận 6">Quận 6</option>
+                            <option value="Quận 7">Quận 7</option>
+                            <option value="Quận 8">Quận 8</option>
+                            <option value="Quận 10">Quận 10</option>
+                            <option value="Quận 11">Quận 11</option>
+                            <option value="Quận 12">Quận 12</option>
+                        </optgroup>
+                        <optgroup label="Các Quận Chữ">
+                            <option value="Bình Thạnh">Bình Thạnh</option>
+                            <option value="Bình Tân">Bình Tân</option>
+                            <option value="Gò Vấp">Gò Vấp</option>
+                            <option value="Phú Nhuận">Phú Nhuận</option>
+                            <option value="Tân Bình">Tân Bình</option>
+                            <option value="Tân Phú">Tân Phú</option>
+                        </optgroup>
+                        <optgroup label="Các Huyện Ngoại Thành">
+                            <option value="Bình Chánh">Bình Chánh</option>
+                            <option value="Cần Giờ">Cần Giờ</option>
+                            <option value="Củ Chi">Củ Chi</option>
+                            <option value="Hóc Môn">Hóc Môn</option>
+                            <option value="Nhà Bè">Nhà Bè</option>
+                        </optgroup>
+                        <option value="Khác">Khu vực khác...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label style="color: #137333;"><i class="fas fa-link"></i> Link Điểm Danh</label>
+                    <input type="text" id="diemDanh" placeholder="Dán link https://...">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="form-group">
+                    <label><i class="fas fa-user-tie"></i> Sale Phụ Trách</label>
+                    <input type="text" id="quanLy" placeholder="Tên người quản lý sale">
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-chalkboard-teacher"></i> Học Vụ IC3</label>
+                    <input type="text" id="nhanSu" placeholder="Tên nhân sự học vụ">
+                </div>
+            </div>
+
+            <div class="security-box">
+                <label><i class="fas fa-lock"></i> Xác Thực Bảo Mật (Mã 888) <span class="required">*</span></label>
+                <input type="password" id="maBaoMat" required placeholder="Nhập mã bảo mật để lưu">
+            </div>
+
+            <div class="btn-group">
+                <a href="quan-ly.html" class="btn btn-cancel"><i class="fas fa-arrow-left"></i> Quay Lại</a>
+                <button type="submit" class="btn btn-save" id="btnSubmit"><i class="fas fa-save"></i> LƯU DỮ LIỆU</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Khởi tạo TomSelect cho Khu Vực
+        new TomSelect("#khuVuc", {
+            create: true,
+            sortField: { field: "text", order: "asc" },
+            placeholder: "Chọn hoặc gõ khu vực mới..."
+        });
+
+        document.getElementById('form-them-moi').addEventListener('submit', async (e) => {
+            e.preventDefault(); 
+
+            const btnSave = document.getElementById('btnSubmit');
+            const originalText = btnSave.innerHTML;
+            
+            // Validate mật khẩu ngay tại Front-end để tiết kiệm thời gian
+            const ma = document.getElementById('maBaoMat').value;
+            if (ma !== '888') {
+                return Swal.fire('Lỗi bảo mật', 'Mã bảo mật không chính xác!', 'error');
+            }
+
+            btnSave.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu...';
+            btnSave.disabled = true;
+
+            const duLieu = {
+                tenTruong: document.getElementById('tenTruong').value.trim(),
+                capHoc: document.getElementById('capHoc').value,
+                khuVuc: document.getElementById('khuVuc').value,
+                quanLy: document.getElementById('quanLy').value.trim(),
+                nhanSu: document.getElementById('nhanSu').value.trim(),
+                diemDanh: document.getElementById('diemDanh').value.trim(),
+                maBaoMat: ma, 
+                hang: "-",
+                trangThaiThi: "-",
+                siSoChiTiet: [], // Mặc định rỗng để Reset tháng sau này chuẩn
+                lichSuNhatKy: []
+            };
+
+            try {
+                const res = await fetch('/api/them-truong', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(duLieu)
+                });
+
+                if (res.ok) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Thành công!',
+                        text: 'Trường đã được thêm vào hệ thống Diamond.',
+                        showConfirmButton: false,
+                        timer: 1500,
+                        timerProgressBar: true
+                    }).then(() => {
+                        window.location.href = 'quan-ly.html';
+                    });
+                } else {
+                    const loi = await res.text();
+                    Swal.fire('Thất bại', 'Lỗi: ' + loi, 'error');
+                    btnSave.innerHTML = originalText;
+                    btnSave.disabled = false;
+                }
+            } catch (err) { 
+                Swal.fire('Lỗi kết nối', 'Không thể gửi dữ liệu tới máy chủ!', 'error');
+                btnSave.innerHTML = originalText;
+                btnSave.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

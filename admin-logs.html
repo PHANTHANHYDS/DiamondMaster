@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nhật Ký Hệ Thống | Diamond Master</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        /* --- GIỮ NGUYÊN 100% STYLE GỐC CỦA BỐ --- */
+        :root { --sidebar-width: 260px; --primary-color: #1a73e8; --dark-blue: #0d1b2a; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Roboto', sans-serif; background-color: #f4f6f9; margin: 0; display: flex; color: #333; }
+
+        .sidebar { 
+            width: var(--sidebar-width); background: var(--dark-blue); height: 100vh; 
+            position: fixed; color: white; padding: 20px 0; z-index: 1000; 
+            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+        }
+        .sidebar-header { text-align: center; padding-bottom: 30px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
+        .sidebar-header h3 { font-size: 18px; color: #4cc9f0; margin: 0; letter-spacing: 1px; text-transform: uppercase; }
+        
+        .menu-item { 
+            padding: 15px 25px; display: flex; align-items: center; gap: 15px; 
+            text-decoration: none; color: rgba(255,255,255,0.7); transition: 0.3s; 
+            border-left: 4px solid transparent;
+        }
+        .menu-item:hover, .menu-item.active { background: rgba(255,255,255,0.1); color: white; border-left: 4px solid var(--primary-color); }
+        .menu-item i { width: 20px; text-align: center; font-size: 18px; }
+
+        .main-wrapper { 
+            margin-left: var(--sidebar-width); 
+            flex: 1; padding: 25px; 
+            width: calc(100% - var(--sidebar-width)); 
+            min-height: 100vh;
+        }
+
+        .header { background: white; padding: 20px 30px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
+        .home-btn { color: #1a73e8; margin: 0; display: flex; align-items: center; gap: 12px; font-size: 22px; font-weight: 700; text-transform: uppercase; cursor: pointer; }
+        
+        .table-container { background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        thead { background: #f1f3f4; border-bottom: 2px solid #dfe1e5; }
+        th { text-align: left; padding: 18px 15px; color: #5f6368; font-size: 13px; font-weight: 700; text-transform: uppercase; }
+        td { padding: 16px 15px; border-bottom: 1px solid #f1f3f4; color: #202124; vertical-align: middle; }
+        tr:hover td { background-color: #f8faff; }
+
+        .tag-action { background: #fff4e5; color: #ff9800; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 11px; }
+        .tag-time { color: #5f6368; font-size: 13px; }
+        
+        /* Scrollbar đẹp */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #999; }
+    </style>
+</head>
+<body>
+
+    <div id="sideBar" class="sidebar">
+        <div class="sidebar-header"><h3>DIAMOND MASTER</h3></div>
+        <a href="quan-ly.html" class="menu-item"><i class="fas fa-school"></i> Quản lý Trường</a>
+        <a href="admin-users.html" class="menu-item"><i class="fas fa-users-cog"></i> Quản lý Nhân sự</a>
+        <a href="admin-archives.html" class="menu-item"><i class="fas fa-history"></i> Lịch sử Archive</a>
+        <a href="admin-logs.html" class="menu-item active"><i class="fas fa-user-shield"></i> Nhật ký Hệ thống</a>
+        <a href="admin-trash.html" class="menu-item"><i class="fas fa-trash-alt"></i> Thùng rác</a>
+        <a href="/" class="menu-item" style="margin-top: auto;" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+    </div>
+
+    <div id="mainWrapper" class="main-wrapper">
+        <div class="header">
+            <h2 class="home-btn" onclick="window.location.href='quan-ly.html'">
+                <i class="fas fa-fingerprint"></i> NHẬT KÝ TÁC NGHIỆP HỆ THỐNG
+            </h2>
+            <div id="lastUpdate" style="font-size: 13px; color: #666;">Cập nhật lúc: Đang tải...</div>
+        </div>
+
+        <div id="actionLogView" class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 50px; text-align: center;">STT</th>
+                        <th>NHÂN SỰ THỰC HIỆN</th>
+                        <th style="width: 150px;">HÀNH ĐỘNG</th>
+                        <th>CHI TIẾT THAY ĐỔI</th>
+                        <th>THỜI GIAN</th>
+                    </tr>
+                </thead>
+                <tbody id="action-table-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // 1. Kiểm tra quyền Admin
+        function checkAdmin() {
+            const user = JSON.parse(localStorage.getItem('userDiamond') || '{}');
+            if (user.role?.toLowerCase() !== "admin") {
+                window.location.href = 'quan-ly.html'; 
+            }
+        }
+
+        // 2. Tải Nhật ký tác nghiệp (Mắt Thần)
+        async function loadActionLogs() {
+            try {
+                const res = await fetch('/api/admin/action-logs'); 
+                const logs = await res.json();
+                const tbody = document.getElementById('action-table-body');
+                
+                if (logs.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Chưa có thao tác nào từ nhân viên</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = logs.map((log, index) => `
+                    <tr>
+                        <td style="text-align:center">${index + 1}</td>
+                        <td><b style="color:#1a73e8">${log.userName}</b></td>
+                        <td><span class="tag-action">${log.action}</span></td>
+                        <td style="font-size:13px;">${log.detail}</td>
+                        <td class="tag-time">${new Date(log.timestamp).toLocaleString('vi-VN')}</td>
+                    </tr>
+                `).join('');
+                document.getElementById('lastUpdate').innerText = "Cập nhật lúc: " + new Date().toLocaleTimeString();
+            } catch (err) { console.error("Lỗi tải log:", err); }
+        }
+
+        function logout() { localStorage.removeItem('userDiamond'); window.location.href='/'; }
+
+        // Khởi động
+        checkAdmin();
+        loadActionLogs();
+        
+        // Tự động làm mới mỗi 30 giây để bố luôn nắm bắt tình hình
+        setInterval(loadActionLogs, 30000);
+    </script>
+</body>
+</html>

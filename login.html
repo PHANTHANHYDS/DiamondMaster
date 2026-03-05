@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduScheduler - Login Diamond</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        :root {
+            --primary: #4e36f5;
+            --bg-dark: #1a1a2e;
+            --card-bg: #2a2a40;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: white;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* --- BACKGROUND ANIMATED BLOCKS --- */
+        .area {
+            background: var(--bg-dark);  
+            width: 100%;
+            height: 100vh;
+            position: absolute;
+            z-index: -1;
+        }
+
+        .circles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        .circles li {
+            position: absolute;
+            display: block;
+            list-style: none;
+            width: 20px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            animation: animate 25s linear infinite;
+            bottom: -150px;
+            border-radius: 4px;
+        }
+
+        .circles li:nth-child(1) { left: 25%; width: 80px; height: 80px; animation-delay: 0s; }
+        .circles li:nth-child(2) { left: 10%; width: 20px; height: 20px; animation-delay: 2s; animation-duration: 12s; }
+        .circles li:nth-child(3) { left: 70%; width: 20px; height: 20px; animation-delay: 4s; }
+        .circles li:nth-child(4) { left: 40%; width: 60px; height: 60px; animation-delay: 0s; animation-duration: 18s; }
+        .circles li:nth-child(5) { left: 65%; width: 20px; height: 20px; animation-delay: 0s; }
+        .circles li:nth-child(6) { left: 75%; width: 110px; height: 110px; animation-delay: 3s; }
+        .circles li:nth-child(7) { left: 35%; width: 150px; height: 150px; animation-delay: 7s; }
+        .circles li:nth-child(8) { left: 50%; width: 25px; height: 25px; animation-delay: 15s; animation-duration: 45s; }
+        .circles li:nth-child(9) { left: 20%; width: 15px; height: 15px; animation-delay: 2s; animation-duration: 35s; }
+        .circles li:nth-child(10) { left: 85%; width: 150px; height: 150px; animation-delay: 0s; animation-duration: 11s; }
+
+        @keyframes animate {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; border-radius: 0; }
+            100% { transform: translateY(-1000px) rotate(720deg); opacity: 0; border-radius: 50%; }
+        }
+
+        /* --- LOGIN CARD --- */
+        .login-container {
+            background: var(--card-bg);
+            padding: 45px;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.08);
+            backdrop-filter: blur(5px);
+            z-index: 10;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 35px;
+            letter-spacing: -1.5px;
+        }
+        .input-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+        .input-group label {
+            display: block;
+            font-size: 11px;
+            color: #a0a0c0;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+        .input-wrapper {
+            position: relative;
+        }
+        .input-wrapper i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64648c;
+        }
+        .input-wrapper input {
+            width: 100%;
+            padding: 14px 15px 14px 45px;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            color: white;
+            font-size: 15px;
+            box-sizing: border-box;
+            outline: none;
+            transition: 0.3s;
+        }
+        .input-wrapper input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(78, 54, 245, 0.15);
+        }
+        .btn-login {
+            width: 100%;
+            padding: 15px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 15px;
+        }
+        .btn-login:hover {
+            background: #432de0;
+            box-shadow: 0 8px 25px rgba(78, 54, 245, 0.4);
+        }
+        /* Style cho Swal để đồng bộ với theme tối của bố */
+        .swal2-popup {
+            background: #2a2a40 !important;
+            color: #fff !important;
+            border-radius: 20px !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="area">
+        <ul class="circles">
+            <li></li><li></li><li></li><li></li><li></li>
+            <li></li><li></li><li></li><li></li><li></li>
+        </ul>
+    </div>
+
+    <div class="login-container">
+        <h1>EDUSCHEDULER</h1>
+        
+        <div class="input-group">
+            <label>Tài khoản</label>
+            <div class="input-wrapper">
+                <i class="fas fa-user"></i>
+                <input type="text" id="username" placeholder="" autocomplete="off">
+            </div>
+        </div>
+        
+        <div class="input-group">
+            <label>Mật khẩu</label>
+            <div class="input-wrapper">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="password" placeholder="">
+            </div>
+        </div>
+
+        <button class="btn-login" onclick="handleLogin()">
+            ĐĂNG NHẬP <i class="fas fa-arrow-right"></i>
+        </button>
+    </div>
+
+    <script>
+        async function handleLogin() {
+            const u = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
+
+            if (!u || !p) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Thiếu thông tin',
+                    text: 'Vui lòng nhập đủ tài khoản và mật khẩu!',
+                    confirmButtonColor: '#4e36f5',
+                    heightAuto: false // CHỐNG DỰT KHUNG
+                });
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: u, password: p })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    localStorage.setItem('userDiamond', JSON.stringify(data.user));
+                    
+                    let titleName = "Nhân viên";
+                    const role = data.user.role.toLowerCase();
+                    if(role === 'admin') titleName = "Quản Trị Viên";
+                    else if(role === 'staff') titleName = "Giáo Vụ Học Vụ";
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Thành công!',
+                        text: `Chào mừng ${titleName} ${data.user.fullName}, đang vào hệ thống...`,
+                        timer: 1200,
+                        showConfirmButton: false,
+                        timerProgressBar: true,
+                        heightAuto: false // CHỐNG DỰT KHUNG
+                    }).then(() => {
+                        window.location.href = 'quan-ly.html';
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Thất bại',
+                        text: data.message || 'Tài khoản hoặc mật khẩu không chính xác!',
+                        confirmButtonColor: '#4e36f5',
+                        heightAuto: false // CHỐNG DỰT KHUNG
+                    });
+                }
+            } catch (err) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: 'Không thể kết nối đến hệ thống server!',
+                    confirmButtonColor: '#4e36f5',
+                    heightAuto: false // CHỐNG DỰT KHUNG
+                });
+            }
+        }
+
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleLogin();
+        });
+    </script>
+</body>
+</html>

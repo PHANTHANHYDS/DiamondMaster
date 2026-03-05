@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch Sử Archive | Diamond Master</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <style>
+        :root { --sidebar-width: 260px; --primary-color: #1a73e8; --dark-blue: #0d1b2a; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Roboto', sans-serif; background-color: #f4f6f9; margin: 0; display: flex; color: #333; }
+
+        /* SIDEBAR */
+        .sidebar { width: var(--sidebar-width); background: var(--dark-blue); height: 100vh; position: fixed; color: white; padding: 20px 0; z-index: 1000; }
+        .sidebar-header { text-align: center; padding-bottom: 30px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
+        .sidebar-header h3 { font-size: 18px; color: #4cc9f0; margin: 0; text-transform: uppercase; }
+        .menu-item { padding: 15px 25px; display: flex; align-items: center; gap: 15px; text-decoration: none; color: rgba(255,255,255,0.7); transition: 0.3s; }
+        .menu-item:hover, .menu-item.active { background: rgba(255,255,255,0.1); color: white; border-left: 4px solid var(--primary-color); }
+
+        .main-wrapper { margin-left: var(--sidebar-width); flex: 1; padding: 25px; width: calc(100% - var(--sidebar-width)); min-height: 100vh; }
+
+        /* LAYOUT ARCHIVE */
+        .archive-container { display: flex; gap: 20px; height: calc(100vh - 150px); }
+        .archive-list { width: 280px; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow-y: auto; padding: 15px; }
+        .archive-item { padding: 15px; border-radius: 8px; margin-bottom: 10px; cursor: pointer; border: 1px solid #eee; transition: 0.2s; background: #fafafa; display: flex; align-items: center; gap: 10px; }
+        .archive-item.active { background: var(--primary-color); color: white; }
+
+        .archive-content { flex: 1; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden; display: flex; flex-direction: column; }
+        .content-header { padding: 15px 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .table-scroll { flex: 1; overflow: auto; }
+        
+        table { width: 100%; border-collapse: collapse; min-width: 1200px; }
+        th { text-align: left; padding: 15px; background: #f1f3f4; color: #5f6368; font-size: 12px; position: sticky; top: 0; z-index: 5; }
+        td { padding: 12px 15px; border-bottom: 1px solid #f1f3f4; font-size: 13px; vertical-align: top; }
+
+        .log-box { font-size: 11px; color: #555; max-height: 120px; overflow-y: auto; }
+        .log-line { margin-bottom: 4px; padding-bottom: 4px; border-bottom: 1px dashed #eee; }
+        .log-time { color: #1a73e8; font-weight: bold; }
+
+        .btn-action { padding: 10px 18px; border-radius: 8px; border: none; cursor: pointer; font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
+        .btn-danger { background: #d93025; color: white; }
+        .btn-success { background: #1a73e8; color: white; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header"><h3>DIAMOND MASTER</h3></div>
+        <a href="quan-ly.html" class="menu-item"><i class="fas fa-school"></i> Quản lý Trường</a>
+        <a href="admin-users.html" class="menu-item"><i class="fas fa-users-cog"></i> Quản lý Nhân sự</a>
+        <a href="admin-archives.html" class="menu-item active"><i class="fas fa-history"></i> Lịch sử Archive</a>
+        <a href="admin-logs.html" class="menu-item"><i class="fas fa-user-shield"></i> Nhật ký Truy cập</a>
+        <a href="admin-trash.html" class="menu-item"><i class="fas fa-trash-alt"></i> Thùng rác</a>
+        <a href="/" class="menu-item" style="margin-top: auto;" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+    </div>
+
+    <div class="main-wrapper">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+            <div>
+                <h2 style="color: #1a73e8; margin:0;"><i class="fas fa-history"></i> KHO LƯU TRỮ LỊCH SỬ</h2>
+                <p style="margin: 5px 0 0 0; font-size: 12px; color: #666;">* Tự động ngày 10 hoặc bấm nút đỏ để chốt thủ công</p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-action btn-danger" onclick="handleForceArchive()">
+                    <i class="fas fa-bolt"></i> CHỐT DANH SÁCH NGAY
+                </button>
+                <button class="btn-action btn-success" onclick="loadArchiveMonths()">
+                    <i class="fas fa-sync-alt"></i> LÀM MỚI
+                </button>
+            </div>
+        </div>
+
+        <div class="archive-container">
+            <div class="archive-list" id="month-list"></div>
+
+            <div class="archive-content">
+                <div class="content-header">
+                    <div id="content-title" style="font-weight: 700; color: #333;">Vui lòng chọn một tháng bên trái</div>
+                    <button class="btn-action" style="background: #217346; color: white; display: none;" id="btnExport" onclick="exportToExcel()">
+                        <i class="fas fa-file-excel"></i> XUẤT EXCEL
+                    </button>
+                </div>
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 50px; text-align: center;">STT</th>
+                                <th style="width: 220px;">TÊN TRƯỜNG</th>
+                                <th style="width: 110px;">KHU VỰC</th>
+                                <th style="width: 80px; text-align: center;">SĨ SỐ</th>
+                                <th style="width: 250px;">KẾ HOẠCH THI CỬ</th>
+                                <th>NHẬT KÝ TÁC NGHIỆP TRONG THÁNG</th>
+                            </tr>
+                        </thead>
+                        <tbody id="archive-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentArchiveData = [];
+        let selectedMonth = "";
+
+        async function loadArchiveMonths() {
+            try {
+                const res = await fetch('/api/admin/archive-months');
+                const months = await res.json();
+                document.getElementById('month-list').innerHTML = months.map(m => `
+                    <div class="archive-item" onclick="viewArchiveDetail('${m}', this)">
+                        <i class="fas fa-calendar-check" style="color:#1a73e8"></i>
+                        <span class="month-title">Tháng ${m}</span>
+                    </div>
+                `).join('');
+            } catch (err) { console.error(err); }
+        }
+
+        async function viewArchiveDetail(month, el) {
+            selectedMonth = month;
+            document.querySelectorAll('.archive-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+
+            try {
+                const res = await fetch(`/api/admin/archive-data/${month}`);
+                const rawData = await res.json();
+                
+                // Móc dữ liệu từ dataBackup của bố
+                currentArchiveData = rawData.map(item => {
+                    const d = item.dataBackup || item;
+                    // Tính tổng sĩ số
+                    const tongSiSo = (d.siSoChiTiet || []).reduce((sum, lop) => sum + (parseInt(lop.soHocSinh) || 0), 0);
+                    return { ...d, tongSiSo };
+                });
+
+                document.getElementById('content-title').innerText = "DỮ LIỆU ĐÓNG BĂNG THÁNG " + month;
+                document.getElementById('btnExport').style.display = 'flex';
+
+                const tbody = document.getElementById('archive-table-body');
+                tbody.innerHTML = currentArchiveData.map((t, i) => {
+                    let logs = (t.lichSuNhatKy || []).map(l => `
+                        <div class="log-line">
+                            <span class="log-time">[${l.tgNhatKy}]</span> ${l.loaiCongViec}
+                        </div>
+                    `).join('');
+
+                    let keHoach = t.noiDungKeHoach ? `<b>${t.ngayKeHoach || ''}:</b> ${t.noiDungKeHoach}` : '<i style="color:#ccc">Trống</i>';
+                    if(t.noiDungKeHoach2) keHoach += `<br><hr style="border-top:1px dashed #eee"><b>${t.ngayKeHoach2 || ''}:</b> ${t.noiDungKeHoach2}`;
+
+                    return `
+                        <tr>
+                            <td style="text-align:center">${i + 1}</td>
+                            <td><b style="color:#1a73e8">${t.tenTruong}</b></td>
+                            <td>${t.khuVuc || '-'}</td>
+                            <td style="text-align:center"><b style="color:#d93025">${t.tongSiSo || 0}</b></td>
+                            <td style="font-size:12px;">${keHoach}</td>
+                            <td><div class="log-box">${logs || '<i>Không có nhật ký</i>'}</div></td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) { console.error(err); }
+        }
+
+        async function handleForceArchive() {
+            const { isConfirmed } = await Swal.fire({
+                title: 'Chốt danh sách ngay?',
+                text: "Lưu bản sao vào kho. Bảng chính vẫn giữ nguyên dữ liệu!",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Chốt luôn!',
+                cancelButtonText: 'Hủy'
+            });
+
+            if (isConfirmed) {
+                Swal.fire({ title: 'Đang đóng gói...', didOpen: () => Swal.showLoading() });
+                const res = await fetch('/api/admin/force-archive', { method: 'POST' });
+                if (res.ok) {
+                    await Swal.fire('Thành công!', 'Dữ liệu đã vào kho.', 'success');
+                    loadArchiveMonths();
+                }
+            }
+        }
+
+        function exportToExcel() {
+            if (currentArchiveData.length === 0) return;
+            const dataToExcel = currentArchiveData.map(t => ({
+                "Tên Trường": t.tenTruong,
+                "Khu Vực": t.khuVuc,
+                "Tổng Sĩ Số": t.tongSiSo,
+                "Kế Hoạch": (t.noiDungKeHoach || '') + (t.noiDungKeHoach2 ? ' | ' + t.noiDungKeHoach2 : ''),
+                "Nhật Ký": (t.lichSuNhatKy || []).map(l => l.loaiCongViec).join('; ')
+            }));
+            const ws = XLSX.utils.json_to_sheet(dataToExcel);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Archive");
+            XLSX.writeFile(wb, `Archive_Diamond_${selectedMonth}.xlsx`);
+        }
+
+        function logout() { localStorage.removeItem('userDiamond'); window.location.href='/'; }
+        loadArchiveMonths();
+    </script>
+</body>
+</html>

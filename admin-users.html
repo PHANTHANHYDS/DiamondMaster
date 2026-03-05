@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Nhân Sự | Diamond Master</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        :root {
+            --sidebar-width: 260px;
+            --primary-color: #1a73e8;
+            --bg-color: #f8f9fa;
+            --dark-blue: #0d1b2a;
+        }
+
+        body { font-family: 'Roboto', sans-serif; background-color: var(--bg-color); margin: 0; display: flex; }
+
+        /* --- SIDEBAR STYLE --- */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--dark-blue);
+            height: 100vh;
+            position: fixed;
+            color: white;
+            padding: 20px 0;
+            z-index: 1000;
+        }
+        .sidebar-header { text-align: center; padding-bottom: 30px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
+        .sidebar-header h3 { font-size: 18px; letter-spacing: 1px; margin: 0; color: #4cc9f0; text-transform: uppercase; }
+
+        .menu-item {
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-decoration: none;
+            color: rgba(255,255,255,0.7);
+            transition: 0.3s;
+            border-left: 4px solid transparent;
+        }
+        .menu-item:hover, .menu-item.active { background: rgba(255,255,255,0.1); color: white; border-left: 4px solid var(--primary-color); }
+        .menu-item i { width: 20px; text-align: center; }
+
+        /* --- MAIN CONTENT --- */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            padding: 40px;
+            width: calc(100% - var(--sidebar-width));
+        }
+
+        .header-title { margin-bottom: 30px; }
+        .header-title h2 { margin: 0; color: #333; font-size: 24px; }
+        .header-title p { color: #777; margin-top: 5px; }
+
+        .grid-container { display: grid; grid-template-columns: 1fr 1.5fr; gap: 30px; }
+
+        /* --- CARD STYLE --- */
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+        .card-title { font-weight: 700; margin-bottom: 25px; color: var(--primary-color); display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 13px; color: #555; }
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: 0.3s;
+            outline: none;
+            background: #fafafa;
+        }
+        input:focus { border-color: var(--primary-color); background: white; box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.1); }
+
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+        .btn-submit:hover { background: #1558b0; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(26, 115, 232, 0.3); }
+
+        /* --- TABLE STYLE --- */
+        .user-table { width: 100%; border-collapse: collapse; }
+        .user-table th { text-align: left; padding: 15px; background: #f8f9fa; color: #5f6368; font-size: 12px; text-transform: uppercase; border-bottom: 2px solid #eee; }
+        .user-table td { padding: 15px; border-bottom: 1px solid #eee; font-size: 14px; vertical-align: middle; }
+        
+        .badge { padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; }
+        .badge-admin { background: #feeef3; color: #e91e63; }
+        .badge-manager { background: #fff4e5; color: #ff9800; } /* Màu riêng cho Quản lý */
+        .badge-staff { background: #e8f0fe; color: #1a73e8; }
+
+        .avatar { width: 35px; height: 35px; background: #ddd; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; text-transform: uppercase; }
+
+        /* Nút xóa */
+        .btn-delete {
+            background: #fff5f5;
+            color: #ff4d4f;
+            border: 1px solid #ffa39e;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 12px;
+        }
+        .btn-delete:hover {
+            background: #ff4d4f;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h3>DIAMOND MASTER</h3>
+        </div>
+        <a href="quan-ly.html" class="menu-item"><i class="fas fa-school"></i> Quản lý Trường</a>
+        <a href="admin-users.html" class="menu-item active"><i class="fas fa-users-cog"></i> Quản lý Nhân sự</a>
+        <a href="admin-archives.html" class="menu-item"><i class="fas fa-history"></i> Lịch sử Archive</a>
+        <a href="admin-trash.html" class="menu-item"><i class="fas fa-trash-alt"></i> Thùng rác</a>
+        <a href="/" class="menu-item" style="margin-top: auto;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+    </div>
+
+    <div class="main-content">
+        <div class="header-title">
+            <h2>Hệ Thống Quản Lý Nhân Sự</h2>
+            <p>Thiết lập đội ngũ vận hành hệ thống chuyên nghiệp</p>
+        </div>
+
+        <div class="grid-container">
+            <div class="card">
+                <div class="card-title"><i class="fas fa-user-plus"></i> TẠO TÀI KHOẢN MỚI</div>
+                <form id="formCreateUser">
+                    <div class="form-group">
+                        <label>Họ và Tên Nhân Viên</label>
+                        <input type="text" id="fullName" required placeholder="Ví dụ: Nguyễn Văn A">
+                    </div>
+                    <div class="form-group">
+                        <label>Tên Đăng Nhập</label>
+                        <input type="text" id="username" required placeholder="Ví dụ: giaovu01">
+                    </div>
+                    <div class="form-group">
+                        <label>Mật Khẩu</label>
+                        <input type="password" id="password" required placeholder="Nhập mật khẩu">
+                    </div>
+                    <div class="form-group">
+                        <label>Phân Quyền Hệ Thống</label>
+                        <select id="role">
+                            <option value="Staff">Giáo Vụ (Chỉ xem & in PDF)</option>
+                            <option value="Manager">Quản Lý (Hỗ trợ Admin)</option>
+                        </select>
+                        <small style="color: #888; font-size: 11px; margin-top: 5px; display: block;">* Tài khoản Admin là duy nhất và không thể tạo thêm.</small>
+                    </div>
+                    <button type="submit" class="btn-submit">XÁC NHẬN TẠO TÀI KHOẢN</button>
+                </form>
+            </div>
+
+            <div class="card" style="padding: 0; overflow: hidden;">
+                <div style="padding: 30px 30px 10px 30px;">
+                    <div class="card-title"><i class="fas fa-list"></i> DANH SÁCH NHÂN VIÊN HIỆN CÓ</div>
+                </div>
+                <div style="max-height: 500px; overflow-y: auto;">
+                    <table class="user-table">
+                        <thead>
+                            <tr>
+                                <th>Nhân viên</th>
+                                <th>Username</th>
+                                <th>Quyền hạn</th>
+                                <th style="text-align: center;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userListBody">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Lấy thông tin admin đang đăng nhập để chặn tự xóa
+        const currentUser = JSON.parse(localStorage.getItem('userDiamond')) || {};
+
+        // 1. Hàm load danh sách User THẬT từ database
+        async function loadUsers() {
+            try {
+                const res = await fetch('/api/admin/list-users');
+                const users = await res.json();
+                const tbody = document.getElementById('userListBody');
+                
+                if (users.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;">Chưa có tài khoản nào được tạo.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = users.map(u => {
+                    // Xác định màu Badge dựa trên Role
+                    let badgeClass = 'badge-staff';
+                    if (u.role === 'Admin') badgeClass = 'badge-admin';
+                    if (u.role === 'Manager') badgeClass = 'badge-manager';
+
+                    return `
+                        <tr>
+                            <td style="display:flex; align-items:center; gap:10px;">
+                                <div class="avatar" style="background:${u.role === 'Admin' ? '#e91e63' : (u.role === 'Manager' ? '#ff9800' : '#1a73e8')}">
+                                    ${u.fullName ? u.fullName.charAt(0) : '?'}
+                                </div>
+                                <div>
+                                    <div style="font-weight: 700; color: #333;">${u.fullName}</div>
+                                    <div style="font-size: 11px; color: #999;">ID: ${u._id.substring(18)}</div>
+                                </div>
+                            </td>
+                            <td style="font-family: monospace; color: #666;">${u.username}</td>
+                            <td>
+                                <span class="badge ${badgeClass}">
+                                    ${u.role.toUpperCase()}
+                                </span>
+                            </td>
+                            <td style="text-align: center;">
+                                ${u.role === 'Admin' ? 
+                                    '<span style="font-size: 11px; color: #e91e63; font-weight: bold;"><i class="fas fa-crown"></i> VIP</span>' : 
+                                    `<button class="btn-delete" onclick="deleteUser('${u._id}', '${u.fullName}')">
+                                        <i class="fas fa-trash-alt"></i> Xóa
+                                    </button>`
+                                }
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (e) { 
+                console.error("Lỗi load user:", e);
+                document.getElementById('userListBody').innerHTML = '<tr><td colspan="4" style="text-align:center; color: red;">Lỗi kết nối Server!</td></tr>';
+            }
+        }
+
+        // 2. Hàm XÓA nhân sự
+        async function deleteUser(id, name) {
+            const { isConfirmed } = await Swal.fire({
+                title: 'Xác nhận xóa?',
+                text: `Thao tác này sẽ xóa vĩnh viễn khỏi MongoDB.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ff4d4f',
+                cancelButtonColor: '#999',
+                confirmButtonText: 'Đúng, xóa ngay!',
+                cancelButtonText: 'Để sau'
+            });
+
+            if (isConfirmed) {
+                try {
+                    const res = await fetch(`/api/admin/delete-user/${id}`, { method: 'DELETE' });
+                    if (res.ok) {
+                        Swal.fire('Đã xóa!', 'Nhân sự đã được gỡ khỏi hệ thống.', 'success');
+                        loadUsers(); // Load lại danh sách
+                    } else {
+                        const errorMsg = await res.text();
+                        Swal.fire('Bị chặn!', errorMsg, 'error');
+                    }
+                } catch (e) {
+                    Swal.fire('Lỗi', 'Lỗi kết nối server.', 'error');
+                }
+            }
+        }
+
+        // Gọi hàm load ngay khi mở trang
+        loadUsers();
+
+        // 3. Xử lý gửi Form tạo User mới
+        document.getElementById('formCreateUser').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const data = {
+                fullName: document.getElementById('fullName').value.trim(),
+                username: document.getElementById('username').value.trim(),
+                password: document.getElementById('password').value,
+                role: document.getElementById('role').value
+            };
+
+            const submitBtn = e.target.querySelector('button');
+            submitBtn.disabled = true;
+            submitBtn.innerText = "ĐANG XỬ LÝ...";
+
+            try {
+                const res = await fetch('/api/admin/create-user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if(res.ok) {
+                    Swal.fire({
+                        title: 'Thành công!',
+                        text: `Đã cấp tài khoản ${data.role} cho ${data.fullName}`,
+                        icon: 'success',
+                        confirmButtonColor: '#1a73e8'
+                    });
+                    
+                    document.getElementById('formCreateUser').reset();
+                    loadUsers();
+                } else {
+                    const errorMsg = await res.text();
+                    Swal.fire('Thất bại', errorMsg || 'Tên đăng nhập này đã có người dùng!', 'error');
+                }
+            } catch (error) {
+                Swal.fire('Lỗi', 'Không thể kết nối tới Server!', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = "XÁC NHẬN TẠO TÀI KHOẢN";
+            }
+        });
+    </script>
+</body>
+</html>
