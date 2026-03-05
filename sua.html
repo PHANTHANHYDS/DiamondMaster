@@ -107,13 +107,16 @@
             </div>
         </form>
     </div>
+    
+    <script src="config.js"></script>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const idTruong = urlParams.get('id');
 
+        // 1. Load dữ liệu cũ lên form bằng dấu huyền (backtick) chuẩn
         if (idTruong) {
-            fetch(`https://diamondmaster.onrender.com/${idTruong}`)
+            fetch(`${BASE_URL}/api/sua-truong/${idTruong}`)
                 .then(res => res.json())
                 .then(data => {
                     document.getElementById('tenTruong').value = data.tenTruong || '';
@@ -122,13 +125,12 @@
                     document.getElementById('nhanSu').value = data.nhanSu || '';
                     document.getElementById('trangThaiThi').value = data.trangThaiThi || '-';
                     document.getElementById('hang').value = data.hang || '-';
-                    
-                    // 👇 Load link cũ lên để sửa
                     document.getElementById('diemDanh').value = data.diemDanh || '';
                 })
                 .catch(e => alert('Lỗi tải dữ liệu: ' + e));
         }
 
+        // 2. Gửi dữ liệu cập nhật
         document.getElementById('form-sua').addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -139,15 +141,13 @@
                 nhanSu: document.getElementById('nhanSu').value,
                 trangThaiThi: document.getElementById('trangThaiThi').value,
                 hang: document.getElementById('hang').value,
-                
-                // 👇 Lấy link mới sửa gửi lên server
                 diemDanh: document.getElementById('diemDanh').value,
-                
                 maBaoMat: document.getElementById('maBaoMat').value
             };
 
             try {
-                const res = await fetch(`http://localhost:3000/api/sua-truong/${idTruong}`, {
+                // Sử dụng biến BASE_URL và dấu huyền để link tự động đổi theo môi trường
+                const res = await fetch(`${BASE_URL}/api/sua-truong/${idTruong}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(duLieuMoi)

@@ -56,9 +56,11 @@
         <p>Đang tải dữ liệu từ Server...</p>
     </div>
 
+    <script src="config.js"></script>
+
     <script>
-        // Gọi API lấy dữ liệu thô
-        fetch('https://diamondmaster.onrender.com/api/danh-sach-truong')
+        // Gọi API bằng biến tự động BASE_URL và dấu huyền (backtick) chuẩn xác
+        fetch(`${BASE_URL}/api/danh-sach-truong`)
             .then(response => response.json())
             .then(data => {
                 const khuVucHienThi = document.getElementById('danh-sach');
@@ -70,7 +72,7 @@
                         <div class="card">
                             <h2>${truong.tenTruong}</h2>
                             <p class="info">📍 Khu vực: ${truong.khuVuc}</p>
-                            <p class="info">👥 Sĩ số: <b>${truong.siSo}</b> học sinh</p>
+                            <p class="info">👥 Sĩ số: <b>${truong.siSo || 0}</b> học sinh</p>
                             <div style="margin-top:15px">
                                 <span class="badge">Đang hoạt động</span>
                             </div>
@@ -80,7 +82,9 @@
                 });
             })
             .catch(loi => {
-                alert("Lỗi kết nối! Bạn nhớ bật 'node index.js' chưa?");
+                console.error("Lỗi API:", loi);
+                const khuVucHienThi = document.getElementById('danh-sach');
+                khuVucHienThi.innerHTML = `<p style="color:red;">❌ Không thể tải dữ liệu. Vui lòng kiểm tra lại Server Render (có thể server đang khởi động)!</p>`;
             });
     </script>
 

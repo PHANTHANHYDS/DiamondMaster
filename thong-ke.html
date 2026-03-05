@@ -106,11 +106,18 @@
         </div>
     </div>
 
+    <script src="config.js"></script>
+
     <script>
-        fetch('https://diamondmaster.onrender.com/api/danh-sach-truong')
+        // Sử dụng biến BASE_URL từ config.js với dấu huyền chuẩn xác
+        fetch(`${BASE_URL}/api/danh-sach-truong`)
             .then(res => res.json())
             .then(data => phanTichDuLieu(data))
-            .catch(err => console.error(err));
+            .catch(err => {
+                console.error("Lỗi kết nối:", err);
+                document.getElementById('upcoming-list').innerHTML = 
+                    `<li style="text-align:center; padding:20px; color:red;">❌ Không thể kết nối Server. Vui lòng đợi Render khởi động (khoảng 1 phút)!</li>`;
+            });
 
         function phanTichDuLieu(data) {
             let totalTruong = data.length;
@@ -244,7 +251,7 @@
 
         function animateNum(id, end) {
             let obj = document.getElementById(id);
-            obj.innerText = end.toLocaleString('vi-VN');
+            if(obj) obj.innerText = end.toLocaleString('vi-VN');
         }
     </script>
 </body>
