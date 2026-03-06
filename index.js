@@ -13,13 +13,13 @@ app.use(express.json());
 
 // --- LỚP BẢO VỆ 1: NGĂN TRUY CẬP TRỰC TIẾP FILE HTML ---
 // Người lạ gõ link/quan-ly.html sẽ bị đá văng về trang login
-app.get('/:page.html', (req, res, next) => {
-    const privatePages = ['quan-ly', 'them-moi', 'thong-ke', 'sua', 'eduscheduler'];
-    if (privatePages.includes(req.params.page)) {
-        return res.redirect('/'); 
-    }
-    next();
-});
+// app.get('/:page.html', (req, res, next) => {
+//     const privatePages = ['quan-ly', 'them-moi', 'thong-ke', 'sua', 'eduscheduler'];
+//     if (privatePages.includes(req.params.page)) {
+//         return res.redirect('/'); 
+//     }
+//     next();
+// });
 
 app.use(express.static(__dirname));
 
