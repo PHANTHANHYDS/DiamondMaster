@@ -3,22 +3,39 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 const nodemailer = require('nodemailer'); 
-const cron = require('node-cron'); // Thư viện để làm lịch tự động chốt sổ
+const cron = require('node-cron'); 
 const app = express();
 
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
+
+// --- LỚP BẢO VỆ 1: NGĂN TRUY CẬP TRỰC TIẾP FILE HTML ---
+// Người lạ gõ link/quan-ly.html sẽ bị đá văng về trang login
+app.get('/:page.html', (req, res, next) => {
+    const privatePages = ['quan-ly', 'them-moi', 'thong-ke', 'sua', 'eduscheduler'];
+    if (privatePages.includes(req.params.page)) {
+        return res.redirect('/'); 
+    }
+    next();
+});
+
 app.use(express.static(__dirname));
 
-// ĐẢM BẢO KẾT NỐI VÀO ĐÚNG DATABASE CHỨA DỮ LIỆU
-const mongoURI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/quan_ly_truong_hoc';
+// --- LỚP BẢO VỆ 2: GIẤU LINK DATABASE ---
+// ĐÃ SỬA: Chỉ lấy từ Render Environment, không để lộ link thật ở đây nữa
+const mongoURI = process.env.MONGODB_URI; 
+
+if (!mongoURI) {
+    console.error("❌ LỖI: Chưa cấu hình MONGODB_URI trên Render!");
+}
+
 mongoose.connect(mongoURI)
-    .then(() => console.log("✅ HỆ THỐNG ĐÃ KẾT NỐI DATABASE THẬT!"))
+    .then(() => console.log("✅ HỆ THỐNG ĐÃ KẾT NỐI DATABASE BẢO MẬT!"))
     .catch(err => console.error("❌ Lỗi kết nối:", err));
 
-// --- 1. CẤU TRÚC SCHEMAS ---
+// --- 1. CẤU TRÚC SCHEMAS (GIỮ NGUYÊN) ---
 const ArchiveTruongHoc = mongoose.model('ArchiveTruongHoc', new mongoose.Schema({
     originalId: String,
     thangChot: String, 
@@ -45,7 +62,7 @@ const GiaoVien = mongoose.model('GiaoVien', new mongoose.Schema({ hoTen: String,
 const LichDay = mongoose.model('LichDay', new mongoose.Schema({ truongId: String, giaoVienId: String, ngayDay: String, tietThu: Number, lopHoc: String, ghiChu: String }));
 const User = mongoose.model('User', new mongoose.Schema({ username: { type: String, unique: true }, password: { type: String }, fullName: String, role: String }));
 
-// --- HÀM HỖ TRỢ: GHI NHẬT KÝ TÁC NGHIỆP (Audit Log) ---
+// --- HÀM HỖ TRỢ: GHI NHẬT KÝ TÁC NGHIỆP (Audit Log - GIỮ NGUYÊN) ---
 async function saveActionLog(req, action, detail) {
     try {
         const { username, fullName, role } = req.body.userAuth || {};
@@ -61,7 +78,7 @@ async function saveActionLog(req, action, detail) {
     } catch (e) { console.error("Lỗi ghi log tác nghiệp:", e); }
 }
 
-// --- 2. LOGIC TỰ ĐỘNG CHỐT SỔ (Ngày 10 hàng tháng) ---
+// --- 2. LOGIC TỰ ĐỘNG CHỐT SỔ (Ngày 10 hàng tháng - GIỮ NGUYÊN) ---
 cron.schedule('0 0 10 * *', async () => {
     try {
         const danhSach = await TruongHoc.find({ isDeleted: false });
@@ -78,7 +95,7 @@ cron.schedule('0 0 10 * *', async () => {
     } catch (e) { console.error("Lỗi Cron:", e); }
 });
 
-// --- 3. API HỆ THỐNG GỐC ---
+// --- 3. API HỆ THỐNG GỐC (GIỮ NGUYÊN) ---
 app.get('/api/danh-sach-truong', async (req, res) => {
     try { res.json(await TruongHoc.find({ isDeleted: false })); } catch (e) { res.status(500).send(e.message); }
 });
@@ -124,8 +141,7 @@ app.post('/api/login', async (req, res) => {
     else res.json({ success: false, message: "Sai tài khoản!" });
 });
 
-// --- 4. API CHO ADMIN (NHÂN SỰ & ARCHIVE) ---
-
+// --- 4. API CHO ADMIN (GIỮ NGUYÊN) ---
 app.get('/api/admin/list-users', async (req, res) => {
     try { res.json(await User.find({}, '-password')); } catch (e) { res.status(500).send(e.message); }
 });
@@ -183,7 +199,6 @@ app.post('/api/admin/restore/:id', async (req, res) => {
     } catch (e) { res.status(500).send(e.message); }
 });
 
-// Lấy danh sách nhật ký tác nghiệp (Action Logs)
 app.get('/api/admin/action-logs', async (req, res) => {
     try { res.json(await ActionLog.find().sort({ timestamp: -1 }).limit(100)); } catch (e) { res.status(500).send(e.message); }
 });
@@ -201,7 +216,7 @@ app.post('/api/admin/force-archive', async (req, res) => {
     } catch (e) { res.status(500).send(e.message); }
 });
 
-// --- CÁC TIỆN ÍCH KHÁC ---
+// --- CÁC TIỆN ÍCH KHÁC (GIỮ NGUYÊN) ---
 app.get('/api/logs', async (req, res) => res.json(await ActionLog.find().sort({ timestamp: -1 }).limit(50)));
 app.get('/api/giao-vien', async (req, res) => res.json(await GiaoVien.find()));
 

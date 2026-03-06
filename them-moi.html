@@ -174,7 +174,7 @@
             </div>
 
             <div class="security-box">
-                <label><i class="fas fa-lock"></i> Xác Thực Bảo Mật (Mã 888) <span class="required">*</span></label>
+                <label><i class="fas fa-lock"></i>Mã Xác Thực <span class="required">*</span></label>
                 <input type="password" id="maBaoMat" required placeholder="Nhập mã bảo mật để lưu">
             </div>
 
@@ -253,5 +253,19 @@
             }
         });
     </script>
+    <script>
+    // Chặn chuột phải hoàn toàn
+    document.addEventListener('contextmenu', e => e.preventDefault());
+
+    // Chặn các phím tắt 'soi code' nguy hiểm
+    document.onkeydown = function(e) {
+        // F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
+        if (e.keyCode == 123 || 
+           (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74)) || 
+           (e.ctrlKey && e.keyCode == 85)) {
+            return false;
+        }
+    };
+</script>
 </body>
 </html>
