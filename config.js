@@ -1,3 +1,4 @@
-const BASE_URL = window.location.hostname === 'localhost' 
-    ? 'http://localhost:3000' 
-    : "https://quanlymaster.onrender.com";
+// config.js
+const BASE_URL = window.location.origin;
+
+export { BASE_URL };

@@ -1,3 +1,5 @@
+require('dotenv').config();
+console.log("ENV:", process.env.MONGODB_URI);
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -223,4 +225,6 @@ app.get('/api/giao-vien', async (req, res) => res.json(await GiaoVien.find()));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'login.html')));
 app.get('/eduscheduler', (req, res) => res.sendFile(path.join(__dirname, 'eduscheduler.html')));
 
-app.listen(PORT, () => console.log(`🚀 DIAMOND MASTER V127 READY AT PORT ${PORT}!`));
+app.listen(PORT, "0.0.0.0", () => 
+  console.log(`🚀 DIAMOND MASTER V127 READY AT PORT ${PORT}!`)
+);

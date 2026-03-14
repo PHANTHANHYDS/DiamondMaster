@@ -136,6 +136,72 @@
         .btn-icon-link { padding: 8px 12px; border-radius: 6px; text-decoration: none; display: inline-block; transition: 0.2s; }
         .link-active { background: #e6f4ea; color: #137333; border: 1px solid #ceead6; } .link-inactive { background: #f1f3f4; color: #ccc; cursor: default; }
         .swal2-container { z-index: 20000 !important; }
+        /* ===== MOBILE RESPONSIVE ===== */
+
+@media (max-width: 768px){
+
+/* Ẩn sidebar */
+.sidebar{
+display:none;
+}
+
+/* Main full màn hình */
+.main-wrapper{
+margin-left:0;
+width:100%;
+padding:10px;
+}
+
+/* Header xuống dòng */
+.header{
+flex-direction:column;
+align-items:flex-start;
+gap:10px;
+}
+
+/* Nút chức năng xuống dòng */
+.action-buttons{
+display:flex;
+flex-wrap:wrap;
+gap:8px;
+}
+
+/* Thanh tìm kiếm */
+.filter-container{
+flex-direction:column;
+align-items:stretch;
+}
+
+.search-wrapper{
+min-width:100%;
+}
+
+/* Table nhỏ lại */
+table{
+font-size:12px;
+}
+
+th, td{
+padding:10px 8px;
+}
+
+/* Modal mobile */
+.modal-content{
+width:100%;
+height:100vh;
+border-radius:0;
+}
+
+.modal-body{
+padding:15px;
+}
+
+}
+
+/* Cho phép vuốt ngang bảng */
+.table-container{
+overflow-x:auto;
+}
     </style>
 <link rel="icon" type="image/png" href="logo-avs.png">
 </head>
@@ -194,13 +260,30 @@
             <div class="result-count" id="so-ket-qua">Đang tải...</div>
         </div>
 
-        <div class="table-container">
-            <table>
-                <thead><tr><th style="width: 50px; text-align: center;">STT</th><th style="width: 280px;">TÊN TRƯỜNG</th><th>KHU VỰC</th><th style="width: 250px;">PHỤ TRÁCH</th><th style="text-align: center;">TRẠNG THÁI THI</th><th style="text-align: center;">ĐIỂM DANH</th><th style="text-align: center;">HẠNG</th><th style="text-align: center;">THAO TÁC</th></tr></thead>
-                <tbody id="bang-du-lieu"></tbody>
-            </table>
-        </div>
-    </div>
+<div class="table-container">
+<div style="overflow-x:auto;">
+
+<table>
+
+<thead>
+<tr>
+<th style="width:50px;text-align:center;">STT</th>
+<th style="width:280px;">TÊN TRƯỜNG</th>
+<th>KHU VỰC</th>
+<th style="width:250px;">PHỤ TRÁCH</th>
+<th style="text-align:center;">TRẠNG THÁI THI</th>
+<th style="text-align:center;">ĐIỂM DANH</th>
+<th style="text-align:center;">HẠNG</th>
+<th style="text-align:center;">THAO TÁC</th>
+</tr>
+</thead>
+
+<tbody id="bang-du-lieu"></tbody>
+
+</table>
+
+</div>
+</div>
 
     <div id="modalChiTiet" class="modal-overlay">
         <div class="modal-content">
