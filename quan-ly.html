@@ -237,8 +237,12 @@ overflow-x:auto;
                 <a href="/eduscheduler" class="btn" style="background-color: #6200ea; color: white;">
                     <i class="fas fa-calendar-alt"></i> EduScheduler
                 </a>
-                <button class="btn btn-excel" onclick="xuatFileExcel()"><i class="fas fa-file-excel"></i> Xuất Excel Tổng</button>
+                
+                
                 <button class="btn btn-success" onclick="toggleCalendar()"><i class="fas fa-calendar-alt"></i> Lịch Công Tác</button>
+                <button class="btn btn-pdf" onclick="xuatTatCaPDF()" style="background-color: #ff5722;">
+        <i class="fas fa-file-export"></i> XUẤT TẤT CẢ PDF
+    </button>
                 <a href="thong-ke.html" class="btn btn-warning"><i class="fas fa-chart-pie"></i> Báo Cáo</a>
                 <a href="them-moi.html" class="btn btn-primary"><i class="fas fa-plus"></i> Thêm Trường</a>
             </div>
@@ -575,40 +579,110 @@ async function luuThongTin() {
     }
 }
 
-        async function xuatHoSoPDF() {
-            const id = document.getElementById('edit-id').value;
-            const t = duLieuGoc.find(item => item._id === id);
-            const get64 = (u) => fetch(u).then(r => r.blob()).then(b => new Promise(rs => {const f=new FileReader();f.readAsDataURL(b);f.onloadend=()=>rs(f.result)}));
-            const img = await get64('avs-logo.png');
-            const doc = {
-                background: () => ({image: img, width: 500, opacity: 0.1, absolutePosition: {x: 55, y: 250}}),
-                content: [
-                    {text: "HỒ SƠ QUẢN LÝ TRƯỜNG HỌC", style: "header", alignment: "center"}, 
-                    {text: t.tenTruong.toUpperCase(), style: "subheader", alignment: "center", margin:[0,0,0,20]}, 
-                    {text: "1. THÔNG TIN CHUNG", style: "section1"}, 
-                    {table: {widths:["30%","70%"], body:[["Khu vực", t.khuVuc || "-"], ["Cấp học", t.capHoc || "-"], ["Địa chỉ", t.diaChi || "-"], ["Hiệu trưởng", `${t.hieuTruong||"-"} (${t.sdtHieuTruong||"-"})`], ["Sale", t.quanLy || "-"]]}}, 
-                    {text:" ", margin:[0,10]}, 
-                    {text: "2. SĨ SỐ & MÔN THI", style: "section2"}, 
-                    {table: {widths:["20%","20%","20%","40%"], body:[[{text:"Khối", bold:true}, {text:"Lớp", bold:true}, {text:"HS", bold:true}, {text:"Môn", bold:true}], ...(t.siSoChiTiet||[]).map(k=>["Khối "+k.khoi, k.soLop||0, k.soHocSinh||0, (k.monThi||[]).join(", ")])]}}, 
-                    {text:" ", margin:[0,10]}, 
-                    {text: "3. KẾ HOẠCH THI CỬ", style: "section4"}, 
-                    {table: {widths:["30%","70%"], body:[["Nội dung thi", t.noiDungKeHoach || "-"], ["Ngày thi dự kiến", t.ngayKeHoach || "-"], ["Trạng thái", t.trangThaiThi || "-"], ["Ghi chú", t.ghiChuThi || "-"]]}}, 
-                    {text:" ", margin:[0,10]}, 
-                    {text: "4. NHẬT KÝ TÁC NGHIỆP", style: "section3"}, 
-                    {table: {widths:["25%","25%","50%"], body:[[{text:"Thời gian", bold:true}, {text:"Loại", bold:true}, {text:"Chi tiết", bold:true}], ...(t.lichSuNhatKy||[]).map(n=>[n.tgNhatKy, n.loaiCongViec, n.ghiChuNhatKy])]}}
-                ],
-                styles: {
-                    header: {fontSize: 22, bold: true, color: "#1a73e8"}, 
-                    subheader: {fontSize: 16, bold: true}, 
-                    section1: {fontSize: 13, bold: true, margin:[0,10,0,5], color: "#1a73e8"},
-                    section2: {fontSize: 13, bold: true, margin:[0,10,0,5], color: "#2e7d32"},
-                    section3: {fontSize: 13, bold: true, margin:[0,10,0,5], color: "#e65100"},
-                    section4: {fontSize: 13, bold: true, margin:[0,10,0,5], color: "#c5221f"}
-                }, 
-                defaultStyle: {font: "Roboto"}
-            };
-            pdfMake.createPdf(doc).download(`Ho_So_${t.tenTruong.replace(/\s+/g, "_")}.pdf`);
-        }
+// --- HÀM XUẤT LẺ TỪNG TRƯỜNG (CẬP NHẬT TÍNH TỔNG + LỌC KHỐI) ---
+async function xuatHoSoPDF() {
+    const id = document.getElementById('edit-id').value;
+    const t = duLieuGoc.find(item => item._id === id);
+    if(!t) return;
+
+    const get64 = (u) => fetch(u).then(r => r.blob()).then(b => new Promise(rs => {const f=new FileReader();f.readAsDataURL(b);f.onloadend=()=>rs(f.result)}));
+    const img = await get64('avs-logo.png');
+
+    // Lọc khối có dữ liệu và tính tổng
+    const siSoCoDuLieu = (t.siSoChiTiet || []).filter(k => (Number(k.soLop) > 0) || (Number(k.soHocSinh) > 0));
+    const tongSoLop = siSoCoDuLieu.reduce((sum, k) => sum + Number(k.soLop || 0), 0);
+    const tongSoHS = siSoCoDuLieu.reduce((sum, k) => sum + Number(k.soHocSinh || 0), 0);
+
+    const doc = {
+        background: () => ({image: img, width: 500, opacity: 0.1, absolutePosition: {x: 55, y: 250}}),
+        content: [
+            {text: "HỒ SƠ QUẢN LÝ TRƯỜNG HỌC", style: "header", alignment: "center"}, 
+            {text: t.tenTruong.toUpperCase(), style: "subheader", alignment: "center", margin:[0,0,0,20]}, 
+            {text: "1. THÔNG TIN CHUNG", style: "section1"}, 
+            {table: {widths:["30%","70%"], body:[ ["Khu vực", t.khuVuc || "-"], ["Cấp học", t.capHoc || "-"], ["Địa chỉ", t.diaChi || "-"], ["Sale phụ trách", t.quanLy || "-"] ]}}, 
+            {text:" ", margin:[0,10]}, 
+            {text: "2. SĨ SỐ & MÔN THI", style: "section2"}, 
+            {table: {widths:["20%","20%","20%","40%"], body:[
+                [{text:"Khối", bold:true, fillColor: '#eeeeee'}, {text:"Lớp", bold:true, fillColor: '#eeeeee'}, {text:"HS", bold:true, fillColor: '#eeeeee'}, {text:"Môn", bold:true, fillColor: '#eeeeee'}], 
+                ...siSoCoDuLieu.map(k => ["Khối " + k.khoi, k.soLop || 0, k.soHocSinh || 0, (k.monThi || []).join(", ")]),
+                [{text: "TỔNG CỘNG", bold: true, fillColor: '#f3f3f3'}, {text: tongSoLop, bold: true, color: 'blue', fillColor: '#f3f3f3'}, {text: tongSoHS, bold: true, color: 'blue', fillColor: '#f3f3f3'}, {text: "", fillColor: '#f3f3f3'}]
+            ]}}, 
+            {text:" ", margin:[0,10]}, 
+            {text: "3. KẾ HOẠCH THI CỬ", style: "section4"}, 
+            {table: {widths:["30%","70%"], body:[ ["Nội dung thi", t.noiDungKeHoach || "-"], ["Ngày thi", t.ngayKeHoach || "-"], ["Trạng thái", t.trangThaiThi || "-"], ["Ghi chú", t.ghiChuThi || "-"] ]}}
+        ],
+        styles: { header: {fontSize: 22, bold: true, color: "#1a73e8"}, subheader: {fontSize: 16, bold: true}, section1: {fontSize: 13, bold: true, margin:[0,10,0,5], color: "#1a73e8"}, section2: {fontSize: 13, bold: true, margin:[0,10,0,5], color: "#2e7d32"}, section4: {fontSize: 13, bold: true, margin:[0,10,0,5], color: "#c5221f"} }, 
+        defaultStyle: {font: "Roboto"}
+    };
+    pdfMake.createPdf(doc).download(`Ho_So_${t.tenTruong.replace(/\s+/g, "_")}.pdf`);
+}
+
+// --- HÀM XUẤT TẤT CẢ PDF HÀNG LOẠT (MỚI) ---
+async function xuatTatCaPDF() {
+    // Lấy danh sách trường đang hiện trên bảng (để nếu bố có lọc thì nó chỉ xuất trường đã lọc)
+    const listToExport = duLieuGoc; 
+    if (listToExport.length === 0) return Swal.fire('Lỗi', 'Không có dữ liệu!', 'error');
+
+    const { isConfirmed } = await Swal.fire({ 
+        title: 'Xuất hàng loạt?', 
+        text: `Hệ thống sẽ chuẩn bị xuất hồ sơ cho ${listToExport.length} trường.Hãy Chọn "Cho phép tải nhiều tệp" nếu trình duyệt hỏi nhé!Ý Có đẹp trai ko A Khỉm`, 
+        icon: 'warning', 
+        showCancelButton: true, 
+        confirmButtonText: 'Xuất ngay' 
+    });
+    
+    if (!isConfirmed) return;
+
+    Swal.fire({ 
+        title: 'Đang khởi tạo...', 
+        html: 'Tiến độ: <b id="pdf-progress">0</b>/' + listToExport.length, 
+        allowOutsideClick: false, 
+        didOpen: () => { Swal.showLoading(); } 
+    });
+
+    const get64 = (u) => fetch(u).then(r => r.blob()).then(b => new Promise(rs => {const f=new FileReader();f.readAsDataURL(b);f.onloadend=()=>rs(f.result)}));
+    const img = await get64('avs-logo.png');
+
+    for (let i = 0; i < listToExport.length; i++) {
+        const t = listToExport[i];
+        
+        const siSoCoDuLieu = (t.siSoChiTiet || []).filter(k => (Number(k.soLop) > 0) || (Number(k.soHocSinh) > 0));
+        const tongSoLop = siSoCoDuLieu.reduce((sum, k) => sum + Number(k.soLop || 0), 0);
+        const tongSoHS = siSoCoDuLieu.reduce((sum, k) => sum + Number(k.soHocSinh || 0), 0);
+
+        const doc = {
+            background: () => ({image: img, width: 500, opacity: 0.1, absolutePosition: {x: 55, y: 250}}),
+            content: [
+                {text: "HỒ SƠ QUẢN LÝ TRƯỜNG HỌC", style: "header", alignment: "center"}, 
+                {text: t.tenTruong.toUpperCase(), style: "subheader", alignment: "center", margin:[0,0,0,20]}, 
+                {text: "1. THÔNG TIN CHUNG", style: "section1"}, 
+                {table: {widths:["30%","70%"], body:[ ["Khu vực", t.khuVuc || "-"], ["Cấp học", t.capHoc || "-"], ["Địa chỉ", t.diaChi || "-"], ["Sale phụ trách", t.quanLy || "-"] ]}}, 
+                {text:" ", margin:[0,10]}, 
+                {text: "2. SĨ SỐ & MÔN THI", style: "section2"}, 
+                {table: {widths:["20%","20%","20%","40%"], body:[
+                    [{text:"Khối", bold:true, fillColor: '#eeeeee'}, {text:"Lớp", bold:true, fillColor: '#eeeeee'}, {text:"HS", bold:true, fillColor: '#eeeeee'}, {text:"Môn", bold:true, fillColor: '#eeeeee'}], 
+                    ...siSoCoDuLieu.map(k => ["Khối " + k.khoi, k.soLop || 0, k.soHocSinh || 0, (k.monThi || []).join(", ")]),
+                    [{text: "TỔNG CỘNG", bold: true, fillColor: '#f3f3f3'}, {text: tongSoLop, bold: true, color: 'blue', fillColor: '#f3f3f3'}, {text: tongSoHS, bold: true, color: 'blue', fillColor: '#f3f3f3'}, {text: "", fillColor: '#f3f3f3'}]
+                ]}}, 
+                {text:" ", margin:[0,10]}, 
+                {text: "3. KẾ HOẠCH THI CỬ", style: "section4"}, 
+                {table: {widths:["30%","70%"], body:[ ["Nội dung thi", t.noiDungKeHoach || "-"], ["Ngày thi", t.ngayKeHoach || "-"], ["Trạng thái", t.trangThaiThi || "-"], ["Ghi chú", t.ghiChuThi || "-"] ]}}
+            ],
+            styles: { header: {fontSize: 22, bold: true, color: "#1a73e8"}, subheader: {fontSize: 16, bold: true}, section1: {fontSize: 13, bold: true, margin:[0,10,0,5], color: "#1a73e8"}, section2: {fontSize: 13, bold: true, margin:[0,10,0,5], color: "#2e7d32"}, section4: {fontSize: 13, bold: true, margin:[0,10,0,5], color: "#c5221f"} }, 
+            defaultStyle: {font: "Roboto"}
+        };
+
+        pdfMake.createPdf(doc).download(`Ho_So_${t.tenTruong.replace(/\s+/g, "_")}.pdf`);
+        
+        // Cập nhật số trên thông báo Progress
+        const prog = document.getElementById('pdf-progress');
+        if(prog) prog.innerText = i + 1;
+
+        // Nghỉ 600ms để trình duyệt kịp thở
+        await new Promise(resolve => setTimeout(resolve, 600));
+    }
+    Swal.fire('Thành công!', `Đã hoàn tất xuất hồ sơ.`, 'success');
+}
 
         function hienThiBang(ds) {
             const bang = document.getElementById('bang-du-lieu');
