@@ -4,11 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lịch Sử Archive | Diamond Master</title>
+    <!-- CSS chung để ẩn body ban đầu -->
+    <link rel="stylesheet" href="common.css">
+    <!-- Auth check chạy ngay -->
+    <script src="auth-check.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="auth-check.js"></script>
 
     <style>
         :root { --sidebar-width: 260px; --primary-color: #1a73e8; --dark-blue: #0d1b2a; }
@@ -186,7 +189,7 @@
                     const res = await fetch('/api/admin/force-archive', { method: 'POST' });
                     if (res.ok) {
                         await Swal.fire('Thành công!', 'Dữ liệu đã vào kho lưu trữ.', 'success');
-                        loadArchiveMonths(); // Tự động làm mới danh sách
+                        loadArchiveMonths();
                     } else {
                         Swal.fire('Lỗi!', 'Server không phản hồi.', 'error');
                     }
@@ -215,4 +218,5 @@
         loadArchiveMonths();
     </script>
 </body>
+
 </html>

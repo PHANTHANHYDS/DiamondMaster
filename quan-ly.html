@@ -2,8 +2,12 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Hệ Thống Quản Lý | Diamond Master</title>
+    <!-- CSS chung để ẩn body ban đầu -->
+    <link rel="stylesheet" href="common.css">
+    <!-- Auth check chạy ngay -->
+    <script src="auth-check.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
@@ -14,7 +18,6 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="auth-check.js"></script>
     <style>
         /* --- 1. SIDEBAR & LAYOUT MỚI CỦA GE (ĐẢM BẢO KHÔNG VỠ) --- */
         :root { 
@@ -34,6 +37,7 @@
             padding: 20px 0; 
             z-index: 1000; 
             box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
         }
         .sidebar-header { text-align: center; padding-bottom: 30px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
         .sidebar-header h3 { font-size: 18px; color: #4cc9f0; margin: 0; letter-spacing: 1px; text-transform: uppercase; }
@@ -55,6 +59,23 @@
         }
         .menu-item i { width: 20px; text-align: center; font-size: 18px; }
 
+        /* NÚT HAMBURGER (chỉ hiện trên mobile) */
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1100;
+            background: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
         /* VÙNG CHỨA NỘI DUNG CHÍNH - ĐẨY SANG PHẢI */
         .main-wrapper { 
             margin-left: var(--sidebar-width); 
@@ -62,10 +83,11 @@
             padding: 25px; 
             width: calc(100% - var(--sidebar-width)); 
             min-height: 100vh;
+            transition: margin-left 0.3s ease;
         }
 
         /* --- 2. GIỮ NGUYÊN 100% STYLE GỐC CỦA BỐ --- */
-        .header { background: white; padding: 20px 30px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
+        .header { background: white; padding: 20px 30px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
         .home-btn { color: #1a73e8; margin: 0; display: flex; align-items: center; gap: 12px; font-size: 22px; font-weight: 700; text-transform: uppercase; cursor: pointer; transition: 0.3s; }
         .btn { padding: 0 20px; height: 40px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; transition: all 0.2s; text-decoration: none; color: white;}
         .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
@@ -109,21 +131,22 @@
         .grid-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 15px; }
         label { display: block; font-size: 13px; font-weight: 600; color: #444; margin-bottom: 6px; }
         input, select, textarea { width: 100%; padding: 10px; border: 1px solid #dadce0; border-radius: 6px; font-size: 14px; box-sizing: border-box; }
-        .modal-footer { padding: 20px; border-top: 1px solid #eee; background: white; display: flex; justify-content: space-between; align-items: center; }
+        .modal-footer { padding: 20px; border-top: 1px solid #eee; background: white; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         #notification-area { display: none; background: #fff3cd; color: #856404; border: 1px solid #ffeeba; padding: 15px; border-radius: 12px; margin-bottom: 20px; animation: slideDown 0.5s ease; }
         .notif-item { background: white; padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 5px solid #ffc107; display: flex; justify-content: space-between; align-items: center; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: 0.2s; } .notif-item:hover { transform: translateX(5px); }
         .notif-tag { font-size: 11px; font-weight: bold; padding: 4px 8px; border-radius: 4px; color: white; margin-right: 8px; }
         .notif-soon { background: #fd7e14; } .notif-urgent { background: #dc3545; animation: pulse-red 2s infinite; }
         
-        #calendar-wrapper { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-bottom: 20px; display: none; animation: slideDown 0.4s ease; }
+        #calendar-wrapper { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-bottom: 25px; display: none; animation: slideDown 0.4s ease; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .fc { min-width: 650px; }
         .fc-event { cursor: pointer; border: none !important; font-size: 12px; padding: 2px; }
-        .filter-container { background: white; padding: 15px 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
-        .search-wrapper { flex: 1; position: relative; display: flex; align-items: center; min-width: 300px; }
+        .filter-container { background: white; padding: 15px 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+        .search-wrapper { flex: 1; position: relative; display: flex; align-items: center; min-width: 200px; }
         .search-wrapper i { position: absolute; left: 15px; color: #1a73e8; font-size: 16px; z-index: 10; }
         .search-wrapper input { width: 100%; height: 45px; padding: 10px 15px 10px 45px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 15px; outline: none; transition: 0.3s; background: #f8f9fa; }
-        .ts-wrapper { min-width: 250px; }
+        .ts-wrapper { min-width: 200px; }
         .ts-control { border-radius: 8px !important; height: 45px !important; display: flex !important; align-items: center !important; border: 1px solid #e0e0e0 !important; background: #f8f9fa !important; }
-        .table-container { background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden; }
+        .table-container { background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; min-width: 1000px; }
         thead { background: #f1f3f4; border-bottom: 2px solid #dfe1e5; }
         th { text-align: left; padding: 18px 15px; color: #5f6368; font-size: 13px; font-weight: 700; text-transform: uppercase; }
@@ -137,75 +160,74 @@
         .link-active { background: #e6f4ea; color: #137333; border: 1px solid #ceead6; } .link-inactive { background: #f1f3f4; color: #ccc; cursor: default; }
         .swal2-container { z-index: 20000 !important; }
         /* ===== MOBILE RESPONSIVE ===== */
-
-@media (max-width: 768px){
-
-/* Ẩn sidebar */
-.sidebar{
-display:none;
-}
-
-/* Main full màn hình */
-.main-wrapper{
-margin-left:0;
-width:100%;
-padding:10px;
-}
-
-/* Header xuống dòng */
-.header{
-flex-direction:column;
-align-items:flex-start;
-gap:10px;
-}
-
-/* Nút chức năng xuống dòng */
-.action-buttons{
-display:flex;
-flex-wrap:wrap;
-gap:8px;
-}
-
-/* Thanh tìm kiếm */
-.filter-container{
-flex-direction:column;
-align-items:stretch;
-}
-
-.search-wrapper{
-min-width:100%;
-}
-
-/* Table nhỏ lại */
-table{
-font-size:12px;
-}
-
-th, td{
-padding:10px 8px;
-}
-
-/* Modal mobile */
-.modal-content{
-width:100%;
-height:100vh;
-border-radius:0;
-}
-
-.modal-body{
-padding:15px;
-}
-
-}
-
-/* Cho phép vuốt ngang bảng */
-.table-container{
-overflow-x:auto;
-}
+        @media (max-width: 768px) {
+            .menu-toggle { display: block; }
+            .sidebar {
+                transform: translateX(-100%);
+                width: 260px;
+                position: fixed;
+                z-index: 1050;
+                top: 0;
+                left: 0;
+                height: 100%;
+                overflow-y: auto;
+            }
+            .sidebar.open { transform: translateX(0); }
+            .main-wrapper { margin-left: 0 !important; width: 100% !important; padding: 60px 10px 10px 10px; }
+            .header { flex-direction: column; align-items: flex-start; }
+            .action-buttons { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; }
+            .action-buttons .btn { flex: 1 0 auto; text-align: center; justify-content: center; }
+            .filter-container { flex-direction: column; align-items: stretch; }
+            .search-wrapper { min-width: 100%; }
+            .ts-wrapper { min-width: 100%; }
+            table { font-size: 12px; min-width: 800px; }
+            th, td { padding: 10px 8px; }
+            .modal-content { width: 100%; height: 100vh; border-radius: 0; }
+            .modal-body { padding: 15px; }
+            .grid-row, .grid-row-3 { grid-template-columns: 1fr !important; gap: 12px; }
+            .siso-table { min-width: 500px; }
+            .modal-footer { flex-direction: column; }
+            .modal-footer button { width: 100%; }
+            /* FullCalendar responsive */
+            #calendar-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 20px; padding: 10px; }
+            .fc { min-width: 650px; }
+            .fc .fc-toolbar { flex-direction: column; align-items: stretch; gap: 10px; }
+            .fc .fc-toolbar-title { font-size: 1.1em; text-align: center; }
+            .fc .fc-button { padding: 6px 10px; font-size: 0.8em; }
+            .fc .fc-daygrid-day-number { font-size: 0.75em; }
+            .fc .fc-daygrid-day-top { justify-content: center; }
+            .fc .fc-event-title { font-size: 0.65em; white-space: normal; word-break: break-word; line-height: 1.2; }
+        }
+        /* Cho phép vuốt ngang bảng */
+        .table-container { overflow-x: auto; }
     </style>
-<link rel="icon" type="image/png" href="logo-avs.png">
+    <link rel="icon" type="image/png" href="logo-avs.png">
 </head>
 <body>
+<!-- CHẶN TRUY CẬP TRỰC TIẾP KHI CHƯA ĐĂNG NHẬP - ĐẶT ĐẦU BODY -->
+<script>
+    (function() {
+        // Nếu đang ở trang login thì không chặn
+        if (window.location.pathname === '/' || window.location.pathname.includes('login.html')) {
+            return;
+        }
+        let user = null;
+        try {
+            const raw = localStorage.getItem('userDiamond');
+            if (raw && raw !== 'undefined' && raw !== 'null') {
+                user = JSON.parse(raw);
+            }
+        } catch(e) {}
+        // Nếu chưa đăng nhập -> xóa toàn bộ trang và chuyển về login
+        if (!user || !user.role) {
+            document.documentElement.innerHTML = '';
+            window.location.replace('/');
+        }
+    })();
+</script>
+    <button class="menu-toggle" id="menuToggle">
+        <i class="fas fa-bars"></i>
+    </button>
 
     <div id="sideBar" class="sidebar">
         <div class="sidebar-header">
@@ -237,12 +259,10 @@ overflow-x:auto;
                 <a href="/eduscheduler" class="btn" style="background-color: #6200ea; color: white;">
                     <i class="fas fa-calendar-alt"></i> EduScheduler
                 </a>
-                
-                
                 <button class="btn btn-success" onclick="toggleCalendar()"><i class="fas fa-calendar-alt"></i> Lịch Công Tác</button>
                 <button class="btn btn-pdf" onclick="xuatTatCaPDF()" style="background-color: #ff5722;">
-        <i class="fas fa-file-export"></i> XUẤT TẤT CẢ PDF
-    </button>
+                    <i class="fas fa-file-export"></i> XUẤT TẤT CẢ PDF
+                </button>
                 <a href="thong-ke.html" class="btn btn-warning"><i class="fas fa-chart-pie"></i> Báo Cáo</a>
                 <a href="them-moi.html" class="btn btn-primary"><i class="fas fa-plus"></i> Thêm Trường</a>
             </div>
@@ -251,7 +271,7 @@ overflow-x:auto;
         <div id="notification-area"><h3><i class="fas fa-bell" style="color: #dc3545;"></i> SỰ KIỆN SẮP TỚI (Trong 7 ngày)</h3><div id="notif-list"></div></div>
         
         <div id="calendar-wrapper">
-            <div style="display: flex; gap: 20px; margin-bottom: 15px; justify-content: center;">
+            <div style="display: flex; gap: 20px; margin-bottom: 15px; justify-content: center; flex-wrap: wrap;">
                 <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 15px; height: 15px; background: #1a73e8; border-radius: 3px;"></div><span style="font-size: 13px; font-weight: 600; color: #1a73e8;">Thi Cử</span></div>
                 <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 15px; height: 15px; background: #e37400; border-radius: 3px;"></div><span style="font-size: 13px; font-weight: 600; color: #e37400;">Kế Hoạch Khác</span></div>
             </div>
@@ -264,30 +284,26 @@ overflow-x:auto;
             <div class="result-count" id="so-ket-qua">Đang tải...</div>
         </div>
 
-<div class="table-container">
-<div style="overflow-x:auto;">
-
-<table>
-
-<thead>
-<tr>
-<th style="width:50px;text-align:center;">STT</th>
-<th style="width:280px;">TÊN TRƯỜNG</th>
-<th>KHU VỰC</th>
-<th style="width:250px;">PHỤ TRÁCH</th>
-<th style="text-align:center;">TRẠNG THÁI THI</th>
-<th style="text-align:center;">ĐIỂM DANH</th>
-<th style="text-align:center;">HẠNG</th>
-<th style="text-align:center;">THAO TÁC</th>
-</tr>
-</thead>
-
-<tbody id="bang-du-lieu"></tbody>
-
-</table>
-
-</div>
-</div>
+        <div class="table-container">
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:50px;text-align:center;">STT</th>
+                            <th style="width:280px;">TÊN TRƯỜNG</th>
+                            <th>KHU VỰC</th>
+                            <th style="width:250px;">PHỤ TRÁCH</th>
+                            <th style="text-align:center;">TRẠNG THÁI THI</th>
+                            <th style="text-align:center;">ĐIỂM DANH</th>
+                            <th style="text-align:center;">HẠNG</th>
+                            <th style="text-align:center;">THAO TÁC</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bang-du-lieu"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
     <div id="modalChiTiet" class="modal-overlay">
         <div class="modal-content">
@@ -385,19 +401,35 @@ overflow-x:auto;
 
         // --- 🚀 LOGIC PHÂN QUYỀN Staff: ẨN SIDEBAR & TRÀN MÀN HÌNH ---
         function applyRole() {
-            const user = JSON.parse(localStorage.getItem('userDiamond') || '{"role":"Staff"}');
+            const userData = localStorage.getItem('userDiamond');
+            if (!userData) return;
+            const user = JSON.parse(userData);
             const sidebar = document.getElementById('sideBar');
             const wrapper = document.getElementById('mainWrapper');
-
-            if (user.role.toLowerCase() === "admin") {
-                sidebar.style.display = 'block';
-                wrapper.classList.add('has-sidebar');
+            if (user.role && user.role.toLowerCase() === "admin") {
+                if(sidebar) sidebar.style.display = 'block';
             } else {
                 if(sidebar) sidebar.remove();
                 if(wrapper) {
                     wrapper.style.marginLeft = "0";
                     wrapper.style.width = "100%";
                 }
+            }
+        }
+
+        function initMobileMenu() {
+            const toggleBtn = document.getElementById('menuToggle');
+            const sidebar = document.getElementById('sideBar');
+            if (toggleBtn && sidebar) {
+                toggleBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('open');
+                });
+                document.addEventListener('click', function(e) {
+                    if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && e.target !== toggleBtn && !toggleBtn.contains(e.target)) {
+                        sidebar.classList.remove('open');
+                    }
+                });
             }
         }
 
@@ -432,7 +464,12 @@ overflow-x:auto;
             const tbody = document.getElementById('lich-su-nhat-ky-body');
             if (MANG_NHAT_KY.length === 0) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Chưa có lịch sử</td></tr>'; return; }
             tbody.innerHTML = MANG_NHAT_KY.map((item, index) => `
-                <tr><td>${item.tgNhatKy}</td><td style="font-weight:bold; color:#2e7d32;">${item.loaiCongViec}</td><td>${item.ghiChuNhatKy || '-'}</td><td><i class="fas fa-times" style="color:red; cursor:pointer;" onclick="xoaDongNhatKy(${index})"></i></td></tr>
+                <tr>
+                    <td>${item.tgNhatKy}</td>
+                    <td style="font-weight:bold; color:#2e7d32;">${item.loaiCongViec}</td>
+                    <td>${item.ghiChuNhatKy || '-'}</td>
+                    <td><i class="fas fa-times" style="color:red; cursor:pointer;" onclick="xoaDongNhatKy(${index})"></i></td>
+                </tr>
             `).join('');
         }
 
@@ -451,7 +488,12 @@ overflow-x:auto;
                 if (!row) row = { khoi: String(khoi), soLop: '0', soHocSinh: '0', monThi: [] };
                 tLop += Number(row.soLop) || 0; tHS += Number(row.soHocSinh) || 0;
                 let monThiHtml = (row.monThi || []).map((mon, index) => `<span class="subject-tag">${mon} <i class="fas fa-times" onclick="xoaMonThi('${khoi}', ${index})"></i></span>`).join('');
-                tbody.innerHTML += `<tr><td class="siso-khoi-col">Khối ${khoi}</td><td><input type="number" value="${row.soLop}" onchange="updateDataSiSo('${khoi}', 'soLop', this.value)"></td><td><input type="number" value="${row.soHocSinh}" onchange="updateDataSiSo('${khoi}', 'soHocSinh', this.value)"></td><td style="text-align: left; padding: 5px;"><div style="display: flex; flex-wrap: wrap; align-items: center;">${monThiHtml}<input type="text" class="subject-input" placeholder="+ Môn..." onkeypress="themMonThi(event, '${khoi}', this)"></div></td></tr>`;
+                tbody.innerHTML += `<tr>
+                    <td class="siso-khoi-col">Khối ${khoi}</td>
+                    <td><input type="number" value="${row.soLop}" onchange="updateDataSiSo('${khoi}', 'soLop', this.value)"></td>
+                    <td><input type="number" value="${row.soHocSinh}" onchange="updateDataSiSo('${khoi}', 'soHocSinh', this.value)"></td>
+                    <td style="text-align: left; padding: 5px;"><div style="display: flex; flex-wrap: wrap; align-items: center;">${monThiHtml}<input type="text" class="subject-input" placeholder="+ Môn..." onkeypress="themMonThi(event, '${khoi}', this)"></div></td>
+                </tr>`;
             });
             tbody.innerHTML += `<tr class="siso-total"><td>TỔNG CỘNG</td><td>${tLop} lớp</td><td>${tHS} HS</td><td></td></tr>`;
         }
@@ -517,172 +559,162 @@ overflow-x:auto;
             } catch (err) { Swal.fire('Lỗi', 'Không thể tải dữ liệu', 'error'); }
         }
 
-async function luuThongTin() {
-    // Lấy thông tin người đang đăng nhập từ bộ nhớ trình duyệt
-    const currentUser = JSON.parse(localStorage.getItem('userDiamond') || '{}');
+        async function luuThongTin() {
+            const currentUser = JSON.parse(localStorage.getItem('userDiamond') || '{}');
 
-    const allInputs = document.querySelectorAll('.subject-input');
-    allInputs.forEach(input => {
-        const attr = input.getAttribute('onkeypress');
-        const match = attr.match(/'(\d+)'/);
-        if (match && match[1]) {
-            const khoi = match[1];
-            if (input.value.trim() !== "") themMonThi(null, khoi, input);
+            const allInputs = document.querySelectorAll('.subject-input');
+            allInputs.forEach(input => {
+                const attr = input.getAttribute('onkeypress');
+                const match = attr.match(/'(\d+)'/);
+                if (match && match[1]) {
+                    const khoi = match[1];
+                    if (input.value.trim() !== "") themMonThi(null, khoi, input);
+                }
+            });
+
+            const { value: password, isConfirmed } = await Swal.fire({ title: '🔒 Xác nhận Admin', text: 'Mã bảo mật :', input: 'password', showCancelButton: true });
+            if (!isConfirmed || password !== "888") return;
+
+            const id = document.getElementById('edit-id').value;
+            const duLieuMoi = { 
+                maBaoMat: password, 
+                tenTruong: document.getElementById('edit-tenTruong').value, 
+                khuVuc: document.getElementById('edit-khuVuc').value, 
+                capHoc: document.getElementById('edit-capHoc').value, 
+                diaChi: document.getElementById('edit-diaChi').value, 
+                hieuTruong: document.getElementById('edit-hieuTruong').value,
+                sdtHieuTruong: document.getElementById('edit-sdtHieuTruong').value,
+                quanLy: document.getElementById('edit-quanLy').value,
+                nhanSu: document.getElementById('edit-nhanSu').value,
+                hocVuTA: document.getElementById('edit-hocVuTA').value,
+                donViGV: document.getElementById('edit-donViGV').value,
+                diemDanh: document.getElementById('edit-diemDanh').value,
+                hang: document.getElementById('edit-hang').value,
+                moTa: document.getElementById('edit-moTa').value,
+                trangThaiThi: document.getElementById('edit-trangThaiThi').value,
+                noiDungKeHoach: document.getElementById('edit-noiDungKeHoach').value,
+                ngayKeHoach: document.getElementById('edit-ngayKeHoach').value,
+                ghiChuThi: document.getElementById('edit-ghiChuThi').value,
+                noiDungKeHoach2: document.getElementById('edit-noiDungKeHoach2').value,
+                ngayKeHoach2: document.getElementById('edit-ngayKeHoach2').value,
+                gvGiangDay: document.getElementById('edit-gvGiangDay').value,
+                gvOnThi: document.getElementById('edit-gvOnThi').value,
+                monDaoTao: document.getElementById('edit-monDaoTao').value,
+                siSoChiTiet: DATA_SISO, 
+                lichSuNhatKy: MANG_NHAT_KY,
+                userAuth: currentUser 
+            };
+
+            const res = await fetch(`/api/sua-truong/${id}`, { 
+                method: 'PUT', 
+                headers: {'Content-Type': 'application/json'}, 
+                body: JSON.stringify(duLieuMoi) 
+            });
+            
+            if(res.ok) { 
+                Swal.fire('Thành công', 'Dữ liệu đã đồng bộ MongoDB!', 'success'); 
+                dongModal(); 
+                taiDuLieu(); 
+            }
         }
-    });
 
-    const { value: password, isConfirmed } = await Swal.fire({ title: '🔒 Xác nhận Admin', text: 'Mã bảo mật :', input: 'password', showCancelButton: true });
-    if (!isConfirmed || password !== "888") return;
+        async function xuatHoSoPDF() {
+            const id = document.getElementById('edit-id').value;
+            const t = duLieuGoc.find(item => item._id === id);
+            if(!t) return;
 
-    const id = document.getElementById('edit-id').value;
-    const duLieuMoi = { 
-        maBaoMat: password, 
-        tenTruong: document.getElementById('edit-tenTruong').value, 
-        khuVuc: document.getElementById('edit-khuVuc').value, 
-        capHoc: document.getElementById('edit-capHoc').value, 
-        diaChi: document.getElementById('edit-diaChi').value, 
-        hieuTruong: document.getElementById('edit-hieuTruong').value,
-        sdtHieuTruong: document.getElementById('edit-sdtHieuTruong').value,
-        quanLy: document.getElementById('edit-quanLy').value,
-        nhanSu: document.getElementById('edit-nhanSu').value,
-        hocVuTA: document.getElementById('edit-hocVuTA').value,
-        donViGV: document.getElementById('edit-donViGV').value,
-        diemDanh: document.getElementById('edit-diemDanh').value,
-        hang: document.getElementById('edit-hang').value,
-        moTa: document.getElementById('edit-moTa').value,
-        trangThaiThi: document.getElementById('edit-trangThaiThi').value,
-        noiDungKeHoach: document.getElementById('edit-noiDungKeHoach').value,
-        ngayKeHoach: document.getElementById('edit-ngayKeHoach').value,
-        ghiChuThi: document.getElementById('edit-ghiChuThi').value,
-        noiDungKeHoach2: document.getElementById('edit-noiDungKeHoach2').value,
-        ngayKeHoach2: document.getElementById('edit-ngayKeHoach2').value,
-        gvGiangDay: document.getElementById('edit-gvGiangDay').value,
-        gvOnThi: document.getElementById('edit-gvOnThi').value,
-        monDaoTao: document.getElementById('edit-monDaoTao').value,
-        siSoChiTiet: DATA_SISO, 
-        lichSuNhatKy: MANG_NHAT_KY,
-        
-        // --- ĐÂY LÀ CHỖ GE THÊM: Gửi danh tính người làm ---
-        userAuth: currentUser 
-    };
+            const get64 = (u) => fetch(u).then(r => r.blob()).then(b => new Promise(rs => {const f=new FileReader();f.readAsDataURL(b);f.onloadend=()=>rs(f.result)}));
+            const img = await get64('avs-logo.png');
 
-    const res = await fetch(`/api/sua-truong/${id}`, { 
-        method: 'PUT', 
-        headers: {'Content-Type': 'application/json'}, 
-        body: JSON.stringify(duLieuMoi) 
-    });
-    
-    if(res.ok) { 
-        Swal.fire('Thành công', 'Dữ liệu đã đồng bộ MongoDB!', 'success'); 
-        dongModal(); 
-        taiDuLieu(); 
-    }
-}
+            const siSoCoDuLieu = (t.siSoChiTiet || []).filter(k => (Number(k.soLop) > 0) || (Number(k.soHocSinh) > 0));
+            const tongSoLop = siSoCoDuLieu.reduce((sum, k) => sum + Number(k.soLop || 0), 0);
+            const tongSoHS = siSoCoDuLieu.reduce((sum, k) => sum + Number(k.soHocSinh || 0), 0);
 
-// --- HÀM XUẤT LẺ TỪNG TRƯỜNG (CẬP NHẬT TÍNH TỔNG + LỌC KHỐI) ---
-async function xuatHoSoPDF() {
-    const id = document.getElementById('edit-id').value;
-    const t = duLieuGoc.find(item => item._id === id);
-    if(!t) return;
+            const doc = {
+                background: () => ({image: img, width: 500, opacity: 0.1, absolutePosition: {x: 55, y: 250}}),
+                content: [
+                    {text: "HỒ SƠ QUẢN LÝ TRƯỜNG HỌC", style: "header", alignment: "center"}, 
+                    {text: t.tenTruong.toUpperCase(), style: "subheader", alignment: "center", margin:[0,0,0,20]}, 
+                    {text: "1. THÔNG TIN CHUNG", style: "section1"}, 
+                    {table: {widths:["30%","70%"], body:[ ["Khu vực", t.khuVuc || "-"], ["Cấp học", t.capHoc || "-"], ["Địa chỉ", t.diaChi || "-"], ["Sale phụ trách", t.quanLy || "-"] ]}}, 
+                    {text:" ", margin:[0,10]}, 
+                    {text: "2. SĨ SỐ & MÔN THI", style: "section2"}, 
+                    {table: {widths:["20%","20%","20%","40%"], body:[
+                        [{text:"Khối", bold:true, fillColor: '#eeeeee'}, {text:"Lớp", bold:true, fillColor: '#eeeeee'}, {text:"HS", bold:true, fillColor: '#eeeeee'}, {text:"Môn", bold:true, fillColor: '#eeeeee'}], 
+                        ...siSoCoDuLieu.map(k => ["Khối " + k.khoi, k.soLop || 0, k.soHocSinh || 0, (k.monThi || []).join(", ")]),
+                        [{text: "TỔNG CỘNG", bold: true, fillColor: '#f3f3f3'}, {text: tongSoLop, bold: true, color: 'blue', fillColor: '#f3f3f3'}, {text: tongSoHS, bold: true, color: 'blue', fillColor: '#f3f3f3'}, {text: "", fillColor: '#f3f3f3'}]
+                    ]}}, 
+                    {text:" ", margin:[0,10]}, 
+                    {text: "3. KẾ HOẠCH THI CỬ", style: "section4"}, 
+                    {table: {widths:["30%","70%"], body:[ ["Nội dung thi", t.noiDungKeHoach || "-"], ["Ngày thi", t.ngayKeHoach || "-"], ["Trạng thái", t.trangThaiThi || "-"], ["Ghi chú", t.ghiChuThi || "-"] ]}}
+                ],
+                styles: { header: {fontSize: 22, bold: true, color: "#1a73e8"}, subheader: {fontSize: 16, bold: true}, section1: {fontSize: 13, bold: true, margin:[0,10,0,5], color: "#1a73e8"}, section2: {fontSize: 13, bold: true, margin:[0,10,0,5], color: "#2e7d32"}, section4: {fontSize: 13, bold: true, margin:[0,10,0,5], color: "#c5221f"} }, 
+                defaultStyle: {font: "Roboto"}
+            };
+            pdfMake.createPdf(doc).download(`Ho_So_${t.tenTruong.replace(/\s+/g, "_")}.pdf`);
+        }
 
-    const get64 = (u) => fetch(u).then(r => r.blob()).then(b => new Promise(rs => {const f=new FileReader();f.readAsDataURL(b);f.onloadend=()=>rs(f.result)}));
-    const img = await get64('avs-logo.png');
+        async function xuatTatCaPDF() {
+            const listToExport = duLieuGoc; 
+            if (listToExport.length === 0) return Swal.fire('Lỗi', 'Không có dữ liệu!', 'error');
 
-    // Lọc khối có dữ liệu và tính tổng
-    const siSoCoDuLieu = (t.siSoChiTiet || []).filter(k => (Number(k.soLop) > 0) || (Number(k.soHocSinh) > 0));
-    const tongSoLop = siSoCoDuLieu.reduce((sum, k) => sum + Number(k.soLop || 0), 0);
-    const tongSoHS = siSoCoDuLieu.reduce((sum, k) => sum + Number(k.soHocSinh || 0), 0);
+            const { isConfirmed } = await Swal.fire({ 
+                title: 'Xuất hàng loạt?', 
+                text: `Hệ thống sẽ chuẩn bị xuất hồ sơ cho ${listToExport.length} trường. Hãy Chọn "Cho phép tải nhiều tệp" nếu trình duyệt hỏi!`, 
+                icon: 'warning', 
+                showCancelButton: true, 
+                confirmButtonText: 'Xuất ngay' 
+            });
+            
+            if (!isConfirmed) return;
 
-    const doc = {
-        background: () => ({image: img, width: 500, opacity: 0.1, absolutePosition: {x: 55, y: 250}}),
-        content: [
-            {text: "HỒ SƠ QUẢN LÝ TRƯỜNG HỌC", style: "header", alignment: "center"}, 
-            {text: t.tenTruong.toUpperCase(), style: "subheader", alignment: "center", margin:[0,0,0,20]}, 
-            {text: "1. THÔNG TIN CHUNG", style: "section1"}, 
-            {table: {widths:["30%","70%"], body:[ ["Khu vực", t.khuVuc || "-"], ["Cấp học", t.capHoc || "-"], ["Địa chỉ", t.diaChi || "-"], ["Sale phụ trách", t.quanLy || "-"] ]}}, 
-            {text:" ", margin:[0,10]}, 
-            {text: "2. SĨ SỐ & MÔN THI", style: "section2"}, 
-            {table: {widths:["20%","20%","20%","40%"], body:[
-                [{text:"Khối", bold:true, fillColor: '#eeeeee'}, {text:"Lớp", bold:true, fillColor: '#eeeeee'}, {text:"HS", bold:true, fillColor: '#eeeeee'}, {text:"Môn", bold:true, fillColor: '#eeeeee'}], 
-                ...siSoCoDuLieu.map(k => ["Khối " + k.khoi, k.soLop || 0, k.soHocSinh || 0, (k.monThi || []).join(", ")]),
-                [{text: "TỔNG CỘNG", bold: true, fillColor: '#f3f3f3'}, {text: tongSoLop, bold: true, color: 'blue', fillColor: '#f3f3f3'}, {text: tongSoHS, bold: true, color: 'blue', fillColor: '#f3f3f3'}, {text: "", fillColor: '#f3f3f3'}]
-            ]}}, 
-            {text:" ", margin:[0,10]}, 
-            {text: "3. KẾ HOẠCH THI CỬ", style: "section4"}, 
-            {table: {widths:["30%","70%"], body:[ ["Nội dung thi", t.noiDungKeHoach || "-"], ["Ngày thi", t.ngayKeHoach || "-"], ["Trạng thái", t.trangThaiThi || "-"], ["Ghi chú", t.ghiChuThi || "-"] ]}}
-        ],
-        styles: { header: {fontSize: 22, bold: true, color: "#1a73e8"}, subheader: {fontSize: 16, bold: true}, section1: {fontSize: 13, bold: true, margin:[0,10,0,5], color: "#1a73e8"}, section2: {fontSize: 13, bold: true, margin:[0,10,0,5], color: "#2e7d32"}, section4: {fontSize: 13, bold: true, margin:[0,10,0,5], color: "#c5221f"} }, 
-        defaultStyle: {font: "Roboto"}
-    };
-    pdfMake.createPdf(doc).download(`Ho_So_${t.tenTruong.replace(/\s+/g, "_")}.pdf`);
-}
+            Swal.fire({ 
+                title: 'Đang khởi tạo...', 
+                html: 'Tiến độ: <b id="pdf-progress">0</b>/' + listToExport.length, 
+                allowOutsideClick: false, 
+                didOpen: () => { Swal.showLoading(); } 
+            });
 
-// --- HÀM XUẤT TẤT CẢ PDF HÀNG LOẠT (MỚI) ---
-async function xuatTatCaPDF() {
-    // Lấy danh sách trường đang hiện trên bảng (để nếu bố có lọc thì nó chỉ xuất trường đã lọc)
-    const listToExport = duLieuGoc; 
-    if (listToExport.length === 0) return Swal.fire('Lỗi', 'Không có dữ liệu!', 'error');
+            const get64 = (u) => fetch(u).then(r => r.blob()).then(b => new Promise(rs => {const f=new FileReader();f.readAsDataURL(b);f.onloadend=()=>rs(f.result)}));
+            const img = await get64('avs-logo.png');
 
-    const { isConfirmed } = await Swal.fire({ 
-        title: 'Xuất hàng loạt?', 
-        text: `Hệ thống sẽ chuẩn bị xuất hồ sơ cho ${listToExport.length} trường.Hãy Chọn "Cho phép tải nhiều tệp" nếu trình duyệt hỏi nhé!Ý Có đẹp trai ko A Khỉm`, 
-        icon: 'warning', 
-        showCancelButton: true, 
-        confirmButtonText: 'Xuất ngay' 
-    });
-    
-    if (!isConfirmed) return;
+            for (let i = 0; i < listToExport.length; i++) {
+                const t = listToExport[i];
+                
+                const siSoCoDuLieu = (t.siSoChiTiet || []).filter(k => (Number(k.soLop) > 0) || (Number(k.soHocSinh) > 0));
+                const tongSoLop = siSoCoDuLieu.reduce((sum, k) => sum + Number(k.soLop || 0), 0);
+                const tongSoHS = siSoCoDuLieu.reduce((sum, k) => sum + Number(k.soHocSinh || 0), 0);
 
-    Swal.fire({ 
-        title: 'Đang khởi tạo...', 
-        html: 'Tiến độ: <b id="pdf-progress">0</b>/' + listToExport.length, 
-        allowOutsideClick: false, 
-        didOpen: () => { Swal.showLoading(); } 
-    });
+                const doc = {
+                    background: () => ({image: img, width: 500, opacity: 0.1, absolutePosition: {x: 55, y: 250}}),
+                    content: [
+                        {text: "HỒ SƠ QUẢN LÝ TRƯỜNG HỌC", style: "header", alignment: "center"}, 
+                        {text: t.tenTruong.toUpperCase(), style: "subheader", alignment: "center", margin:[0,0,0,20]}, 
+                        {text: "1. THÔNG TIN CHUNG", style: "section1"}, 
+                        {table: {widths:["30%","70%"], body:[ ["Khu vực", t.khuVuc || "-"], ["Cấp học", t.capHoc || "-"], ["Địa chỉ", t.diaChi || "-"], ["Sale phụ trách", t.quanLy || "-"] ]}}, 
+                        {text:" ", margin:[0,10]}, 
+                        {text: "2. SĨ SỐ & MÔN THI", style: "section2"}, 
+                        {table: {widths:["20%","20%","20%","40%"], body:[
+                            [{text:"Khối", bold:true, fillColor: '#eeeeee'}, {text:"Lớp", bold:true, fillColor: '#eeeeee'}, {text:"HS", bold:true, fillColor: '#eeeeee'}, {text:"Môn", bold:true, fillColor: '#eeeeee'}], 
+                            ...siSoCoDuLieu.map(k => ["Khối " + k.khoi, k.soLop || 0, k.soHocSinh || 0, (k.monThi || []).join(", ")]),
+                            [{text: "TỔNG CỘNG", bold: true, fillColor: '#f3f3f3'}, {text: tongSoLop, bold: true, color: 'blue', fillColor: '#f3f3f3'}, {text: tongSoHS, bold: true, color: 'blue', fillColor: '#f3f3f3'}, {text: "", fillColor: '#f3f3f3'}]
+                        ]}}, 
+                        {text:" ", margin:[0,10]}, 
+                        {text: "3. KẾ HOẠCH THI CỬ", style: "section4"}, 
+                        {table: {widths:["30%","70%"], body:[ ["Nội dung thi", t.noiDungKeHoach || "-"], ["Ngày thi", t.ngayKeHoach || "-"], ["Trạng thái", t.trangThaiThi || "-"], ["Ghi chú", t.ghiChuThi || "-"] ]}}
+                    ],
+                    styles: { header: {fontSize: 22, bold: true, color: "#1a73e8"}, subheader: {fontSize: 16, bold: true}, section1: {fontSize: 13, bold: true, margin:[0,10,0,5], color: "#1a73e8"}, section2: {fontSize: 13, bold: true, margin:[0,10,0,5], color: "#2e7d32"}, section4: {fontSize: 13, bold: true, margin:[0,10,0,5], color: "#c5221f"} }, 
+                    defaultStyle: {font: "Roboto"}
+                };
 
-    const get64 = (u) => fetch(u).then(r => r.blob()).then(b => new Promise(rs => {const f=new FileReader();f.readAsDataURL(b);f.onloadend=()=>rs(f.result)}));
-    const img = await get64('avs-logo.png');
-
-    for (let i = 0; i < listToExport.length; i++) {
-        const t = listToExport[i];
-        
-        const siSoCoDuLieu = (t.siSoChiTiet || []).filter(k => (Number(k.soLop) > 0) || (Number(k.soHocSinh) > 0));
-        const tongSoLop = siSoCoDuLieu.reduce((sum, k) => sum + Number(k.soLop || 0), 0);
-        const tongSoHS = siSoCoDuLieu.reduce((sum, k) => sum + Number(k.soHocSinh || 0), 0);
-
-        const doc = {
-            background: () => ({image: img, width: 500, opacity: 0.1, absolutePosition: {x: 55, y: 250}}),
-            content: [
-                {text: "HỒ SƠ QUẢN LÝ TRƯỜNG HỌC", style: "header", alignment: "center"}, 
-                {text: t.tenTruong.toUpperCase(), style: "subheader", alignment: "center", margin:[0,0,0,20]}, 
-                {text: "1. THÔNG TIN CHUNG", style: "section1"}, 
-                {table: {widths:["30%","70%"], body:[ ["Khu vực", t.khuVuc || "-"], ["Cấp học", t.capHoc || "-"], ["Địa chỉ", t.diaChi || "-"], ["Sale phụ trách", t.quanLy || "-"] ]}}, 
-                {text:" ", margin:[0,10]}, 
-                {text: "2. SĨ SỐ & MÔN THI", style: "section2"}, 
-                {table: {widths:["20%","20%","20%","40%"], body:[
-                    [{text:"Khối", bold:true, fillColor: '#eeeeee'}, {text:"Lớp", bold:true, fillColor: '#eeeeee'}, {text:"HS", bold:true, fillColor: '#eeeeee'}, {text:"Môn", bold:true, fillColor: '#eeeeee'}], 
-                    ...siSoCoDuLieu.map(k => ["Khối " + k.khoi, k.soLop || 0, k.soHocSinh || 0, (k.monThi || []).join(", ")]),
-                    [{text: "TỔNG CỘNG", bold: true, fillColor: '#f3f3f3'}, {text: tongSoLop, bold: true, color: 'blue', fillColor: '#f3f3f3'}, {text: tongSoHS, bold: true, color: 'blue', fillColor: '#f3f3f3'}, {text: "", fillColor: '#f3f3f3'}]
-                ]}}, 
-                {text:" ", margin:[0,10]}, 
-                {text: "3. KẾ HOẠCH THI CỬ", style: "section4"}, 
-                {table: {widths:["30%","70%"], body:[ ["Nội dung thi", t.noiDungKeHoach || "-"], ["Ngày thi", t.ngayKeHoach || "-"], ["Trạng thái", t.trangThaiThi || "-"], ["Ghi chú", t.ghiChuThi || "-"] ]}}
-            ],
-            styles: { header: {fontSize: 22, bold: true, color: "#1a73e8"}, subheader: {fontSize: 16, bold: true}, section1: {fontSize: 13, bold: true, margin:[0,10,0,5], color: "#1a73e8"}, section2: {fontSize: 13, bold: true, margin:[0,10,0,5], color: "#2e7d32"}, section4: {fontSize: 13, bold: true, margin:[0,10,0,5], color: "#c5221f"} }, 
-            defaultStyle: {font: "Roboto"}
-        };
-
-        pdfMake.createPdf(doc).download(`Ho_So_${t.tenTruong.replace(/\s+/g, "_")}.pdf`);
-        
-        // Cập nhật số trên thông báo Progress
-        const prog = document.getElementById('pdf-progress');
-        if(prog) prog.innerText = i + 1;
-
-        // Nghỉ 600ms để trình duyệt kịp thở
-        await new Promise(resolve => setTimeout(resolve, 600));
-    }
-    Swal.fire('Thành công!', `Đã hoàn tất xuất hồ sơ.`, 'success');
-}
+                pdfMake.createPdf(doc).download(`Ho_So_${t.tenTruong.replace(/\s+/g, "_")}.pdf`);
+                
+                const prog = document.getElementById('pdf-progress');
+                if(prog) prog.innerText = i + 1;
+                await new Promise(resolve => setTimeout(resolve, 600));
+            }
+            Swal.fire('Thành công!', `Đã hoàn tất xuất hồ sơ.`, 'success');
+        }
 
         function hienThiBang(ds) {
             const bang = document.getElementById('bang-du-lieu');
@@ -713,7 +745,13 @@ async function xuatTatCaPDF() {
                 if (item.ngayKeHoach2) events.push({title: `[KH] ${item.tenTruong}`, start: item.ngayKeHoach2, backgroundColor: '#e37400', extendedProps: { id: item._id }});
             });
             if (calendar) calendar.destroy();
-            calendar = new FullCalendar.Calendar(document.getElementById('calendar'), { initialView: 'dayGridMonth', locale: 'vi', events: events, eventClick: function(info) { moChiTiet(info.event.extendedProps.id); }});
+            calendar = new FullCalendar.Calendar(document.getElementById('calendar'), { 
+                initialView: 'dayGridMonth', 
+                locale: 'vi', 
+                events: events,
+                contentHeight: "auto",
+                eventClick: function(info) { moChiTiet(info.event.extendedProps.id); }
+            });
             calendar.render(); 
         }
 
@@ -743,53 +781,39 @@ async function xuatTatCaPDF() {
         function dongModal() { document.getElementById('modalChiTiet').style.display = 'none'; }
         function layNutDiemDanh(link) { if (link && link.includes('http')) return `<a href="${link}" target="_blank" class="btn-icon-link link-active"><i class="fas fa-external-link-alt"></i></a>`; return `<span class="btn-icon-link link-inactive"><i class="fas fa-ban"></i></span>`; }
         function layMauTrangThai(status) { if (status === 'Đã thi' || status === 'Hoàn thành') return '<span class="tag tag-green">Xong</span>'; if (status === 'Chưa thi') return '<span class="tag tag-gray">Chưa thi</span>'; return `<span class="tag tag-orange">${status || '-'}</span>`; }
-async function xoaTruongTrongModal() {
-    const currentUser = JSON.parse(localStorage.getItem('userDiamond') || '{}');
-    const id = document.getElementById('edit-id').value;
+        
+        async function xoaTruongTrongModal() {
+            const currentUser = JSON.parse(localStorage.getItem('userDiamond') || '{}');
+            const id = document.getElementById('edit-id').value;
 
-    const { value: password, isConfirmed } = await Swal.fire({
-        title: '⚠️ XÓA!',
-        text: 'Mã bảo mật:',
-        icon: 'warning',
-        input: 'password',
-        showCancelButton: true
-    });
+            const { value: password, isConfirmed } = await Swal.fire({
+                title: '⚠️ XÓA!',
+                text: 'Mã bảo mật:',
+                icon: 'warning',
+                input: 'password',
+                showCancelButton: true
+            });
 
-    if (!isConfirmed || password !== "888") return;
+            if (!isConfirmed || password !== "888") return;
 
-    // Sửa dấu ' thành dấu ` ở dòng fetch dưới đây bố nhé
-    fetch(`/api/xoa-truong/${id}`, { 
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            maBaoMat: "888",
-            userAuth: currentUser // Đã có "chữ ký" cho Mắt Thần
-        })
-    }).then(() => {
-        dongModal();
-        taiDuLieu();
-    });
-}
+            fetch(`/api/xoa-truong/${id}`, { 
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    maBaoMat: "888",
+                    userAuth: currentUser
+                })
+            }).then(() => {
+                dongModal();
+                taiDuLieu();
+            });
+        }
 
-// Giữ nguyên dòng này để đăng xuất
-function logout() { localStorage.removeItem('userDiamond'); window.location.href='/'; }
+        function logout() { localStorage.removeItem('userDiamond'); window.location.href='/'; }
 
         // CHẠY KHỞI TẠO
         applyRole();
+        initMobileMenu();
     </script>
-    <script>
-    // Chặn chuột phải hoàn toàn
-    document.addEventListener('contextmenu', e => e.preventDefault());
-
-    // Chặn các phím tắt 'soi code' nguy hiểm
-    document.onkeydown = function(e) {
-        // F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
-        if (e.keyCode == 123 || 
-           (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74)) || 
-           (e.ctrlKey && e.keyCode == 85)) {
-            return false;
-        }
-    };
-</script>
 </body>
 </html>

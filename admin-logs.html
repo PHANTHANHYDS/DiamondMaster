@@ -4,10 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nhật Ký Hệ Thống | Diamond Master</title>
+    <!-- CSS chung để ẩn body ban đầu -->
+    <link rel="stylesheet" href="common.css">
+    <!-- Auth check chạy ngay -->
+    <script src="auth-check.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="auth-check.js"></script>
 
     <style>
         /* --- GIỮ NGUYÊN 100% STYLE GỐC CỦA BỐ --- */
@@ -95,15 +98,7 @@
     </div>
 
     <script>
-        // 1. Kiểm tra quyền Admin
-        function checkAdmin() {
-            const user = JSON.parse(localStorage.getItem('userDiamond') || '{}');
-            if (user.role?.toLowerCase() !== "admin") {
-                window.location.href = 'quan-ly.html'; 
-            }
-        }
-
-        // 2. Tải Nhật ký tác nghiệp (Mắt Thần)
+        // Tải Nhật ký tác nghiệp
         async function loadActionLogs() {
             try {
                 const res = await fetch('/api/admin/action-logs'); 
@@ -131,10 +126,9 @@
         function logout() { localStorage.removeItem('userDiamond'); window.location.href='/'; }
 
         // Khởi động
-        checkAdmin();
         loadActionLogs();
         
-        // Tự động làm mới mỗi 30 giây để bố luôn nắm bắt tình hình
+        // Tự động làm mới mỗi 30 giây
         setInterval(loadActionLogs, 30000);
     </script>
 </body>

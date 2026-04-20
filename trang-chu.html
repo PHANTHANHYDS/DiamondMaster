@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
+    <link rel="stylesheet" href="common.css">
+    <!-- Auth check chạy ngay -->
+    <script src="auth-check.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản Lý Trường Học</title>
+    <!-- CSS chung để ẩn body ban đầu -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
-    <script src="auth-check.js"></script>
     <style>
         body { 
             font-family: 'Roboto', sans-serif; 
@@ -32,10 +35,10 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             transition: transform 0.2s;
             text-align: left;
-            border-top: 5px solid #1a73e8; /* Màu xanh chủ đạo */
+            border-top: 5px solid #1a73e8;
         }
         
-        .card:hover { transform: translateY(-5px); } /* Hiệu ứng bay lên khi di chuột */
+        .card:hover { transform: translateY(-5px); }
         
         .card h2 { margin: 0 0 10px; font-size: 18px; color: #333; }
         .info { color: #555; margin: 5px 0; font-size: 14px; }
@@ -58,16 +61,14 @@
     </div>
 
     <script src="config.js"></script>
-
     <script>
-        // Gọi API bằng biến tự động BASE_URL và dấu huyền (backtick) chuẩn xác
+        // Gọi API bằng biến BASE_URL
         fetch(`${BASE_URL}/api/danh-sach-truong`)
             .then(response => response.json())
             .then(data => {
                 const khuVucHienThi = document.getElementById('danh-sach');
-                khuVucHienThi.innerHTML = ''; // Xóa chữ đang tải
+                khuVucHienThi.innerHTML = '';
 
-                // Duyệt qua từng trường và vẽ ra thẻ đẹp
                 data.forEach(truong => {
                     const theHTML = `
                         <div class="card">
@@ -85,23 +86,19 @@
             .catch(loi => {
                 console.error("Lỗi API:", loi);
                 const khuVucHienThi = document.getElementById('danh-sach');
-                khuVucHienThi.innerHTML = `<p style="color:red;">❌ Không thể tải dữ liệu. Vui lòng kiểm tra lại Server Render (có thể server đang khởi động)!</p>`;
+                khuVucHienThi.innerHTML = `<p style="color:red;">❌ Không thể tải dữ liệu. Vui lòng kiểm tra lại Server!</p>`;
             });
     </script>
     <script>
-    // Chặn chuột phải hoàn toàn
-    document.addEventListener('contextmenu', e => e.preventDefault());
-
-    // Chặn các phím tắt 'soi code' nguy hiểm
-    document.onkeydown = function(e) {
-        // F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
-        if (e.keyCode == 123 || 
-           (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74)) || 
-           (e.ctrlKey && e.keyCode == 85)) {
-            return false;
-        }
-    };
-</script>
-
+        // Chặn chuột phải và phím tắt xem mã nguồn
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.onkeydown = function(e) {
+            if (e.keyCode == 123 || 
+               (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74)) || 
+               (e.ctrlKey && e.keyCode == 85)) {
+                return false;
+            }
+        };
+    </script>
 </body>
 </html>

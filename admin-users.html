@@ -4,10 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản Lý Nhân Sự | Diamond Master</title>
+    <!-- CSS chung để ẩn body ban đầu -->
+    <link rel="stylesheet" href="common.css">
+    <!-- Auth check chạy ngay -->
+    <script src="auth-check.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="auth-check.js"></script>
 
     <style>
         :root {
@@ -103,7 +106,7 @@
         
         .badge { padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; }
         .badge-admin { background: #feeef3; color: #e91e63; }
-        .badge-manager { background: #fff4e5; color: #ff9800; } /* Màu riêng cho Quản lý */
+        .badge-manager { background: #fff4e5; color: #ff9800; }
         .badge-staff { background: #e8f0fe; color: #1a73e8; }
 
         .avatar { width: 35px; height: 35px; background: #ddd; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; text-transform: uppercase; }
@@ -206,12 +209,11 @@
                 const tbody = document.getElementById('userListBody');
                 
                 if (users.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;">Chưa có tài khoản nào được tạo.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;">Chưa có tài khoản nào được tạo.</td></td>';
                     return;
                 }
 
                 tbody.innerHTML = users.map(u => {
-                    // Xác định màu Badge dựa trên Role
                     let badgeClass = 'badge-staff';
                     if (u.role === 'Admin') badgeClass = 'badge-admin';
                     if (u.role === 'Manager') badgeClass = 'badge-manager';
@@ -268,7 +270,7 @@
                     const res = await fetch(`/api/admin/delete-user/${id}`, { method: 'DELETE' });
                     if (res.ok) {
                         Swal.fire('Đã xóa!', 'Nhân sự đã được gỡ khỏi hệ thống.', 'success');
-                        loadUsers(); // Load lại danh sách
+                        loadUsers();
                     } else {
                         const errorMsg = await res.text();
                         Swal.fire('Bị chặn!', errorMsg, 'error');
@@ -279,7 +281,6 @@
             }
         }
 
-        // Gọi hàm load ngay khi mở trang
         loadUsers();
 
         // 3. Xử lý gửi Form tạo User mới

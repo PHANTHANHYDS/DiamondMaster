@@ -4,13 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Thêm Trường Mới | EduScheduler</title>
+    <!-- CSS chung để ẩn body ban đầu -->
+    <link rel="stylesheet" href="common.css">
+    <!-- Auth check chạy ngay -->
+    <script src="auth-check.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="auth-check.js"></script>
 
     <style>
         body { 
@@ -89,7 +91,7 @@
         .btn-cancel { background: #f1f3f4; color: #5f6368; }
         .btn-cancel:hover { background: #e8eaed; color: #3c4043; }
     </style>
-<link rel="icon" type="image/png" href="logo-avs.png">
+    <link rel="icon" type="image/png" href="logo-avs.png">
 </head>
 <body>
 
@@ -200,7 +202,6 @@
             const btnSave = document.getElementById('btnSubmit');
             const originalText = btnSave.innerHTML;
             
-            // Validate mật khẩu ngay tại Front-end để tiết kiệm thời gian
             const ma = document.getElementById('maBaoMat').value;
             if (ma !== '888') {
                 return Swal.fire('Lỗi bảo mật', 'Mã bảo mật không chính xác!', 'error');
@@ -219,7 +220,7 @@
                 maBaoMat: ma, 
                 hang: "-",
                 trangThaiThi: "-",
-                siSoChiTiet: [], // Mặc định rỗng để Reset tháng sau này chuẩn
+                siSoChiTiet: [],
                 lichSuNhatKy: []
             };
 
@@ -255,18 +256,14 @@
         });
     </script>
     <script>
-    // Chặn chuột phải hoàn toàn
-    document.addEventListener('contextmenu', e => e.preventDefault());
-
-    // Chặn các phím tắt 'soi code' nguy hiểm
-    document.onkeydown = function(e) {
-        // F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
-        if (e.keyCode == 123 || 
-           (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74)) || 
-           (e.ctrlKey && e.keyCode == 85)) {
-            return false;
-        }
-    };
-</script>
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.onkeydown = function(e) {
+            if (e.keyCode == 123 || 
+               (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74)) || 
+               (e.ctrlKey && e.keyCode == 85)) {
+                return false;
+            }
+        };
+    </script>
 </body>
 </html>

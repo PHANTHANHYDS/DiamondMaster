@@ -1,33 +1,58 @@
 require('dotenv').config();
-console.log("ENV:", process.env.MONGODB_URI);
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
-const nodemailer = require('nodemailer'); 
-const cron = require('node-cron'); 
+const session = require('express-session');
+const cron = require('node-cron');
 const app = express();
 
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+// Cấu hình session
+app.use(session({
+    secret: 'diamond_master_secret_2025',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false, httpOnly: true, maxAge: 24 * 60 * 60 * 1000 }
+}));
+
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
-// --- 1. KẾT NỐI DATABASE ---
-const mongoURI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/quan_ly_truong_hoc'; 
-mongoose.connect(mongoURI)
-    .then(() => console.log("✅ HỆ THỐNG ĐÃ KẾT NỐI DATABASE BẢO MẬT!"))
-    .catch(err => console.error("❌ Lỗi kết nối:", err));
+// Middleware chặn truy cập file tĩnh khi chưa đăng nhập
+app.use((req, res, next) => {
+    const pathUrl = req.path;
+    // Các route công khai (không cần đăng nhập)
+    const publicRoutes = ['/', '/login.html', '/eduscheduler', '/eduscheduler.html'];
+    if (publicRoutes.includes(pathUrl)) {
+        return next();
+    }
+    // API login/logout công khai
+    if (pathUrl === '/api/login' || pathUrl === '/api/logout') {
+        return next();
+    }
+    // Kiểm tra session
+    if (req.session && req.session.user) {
+        return next();
+    }
+    // Chưa đăng nhập -> chuyển về trang login
+    res.redirect('/');
+});
 
-// --- 2. CẤU TRÚC SCHEMAS ---
+// Kết nối MongoDB
+const mongoURI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/quan_ly_truong_hoc';
+mongoose.connect(mongoURI)
+    .then(() => console.log("✅ Kết nối DB thành công"))
+    .catch(err => console.error("❌ Lỗi DB:", err));
+
+// --- Schema (giữ nguyên như cũ) ---
 const ArchiveTruongHoc = mongoose.model('ArchiveTruongHoc', new mongoose.Schema({
     originalId: String, thangChot: String, dataBackup: Object, timestamp: { type: Date, default: Date.now }
 }));
-
 const ActionLog = mongoose.model('ActionLog', new mongoose.Schema({ 
     userName: String, action: String, detail: String, timestamp: { type: Date, default: Date.now } 
 }));
-
 const TruongHoc = mongoose.model('TruongHoc', new mongoose.Schema({ 
     tenTruong: String, khuVuc: String, capHoc: String, diaChi: String, hieuTruong: String, sdtHieuTruong: String,
     quanLy: String, nhanSu: String, hocVuTA: String, donViGV: String, diemDanh: String, hang: String,
@@ -37,12 +62,11 @@ const TruongHoc = mongoose.model('TruongHoc', new mongoose.Schema({
     lichSuNhatKy: Array, isDeleted: { type: Boolean, default: false },
     config: { dsGioTiet: [String], ngayHoatDong: [Number], soTietToiDa: Number } 
 }));
-
 const GiaoVien = mongoose.model('GiaoVien', new mongoose.Schema({ hoTen: String, monDay: String, email: String, luongTH: Number, luongTHCS: Number, luongTHPT: Number, phuCap: Number, lichBan: [String] }));
 const LichDay = mongoose.model('LichDay', new mongoose.Schema({ truongId: String, giaoVienId: String, ngayDay: String, tietThu: Number, lopHoc: String, ghiChu: String }));
 const User = mongoose.model('User', new mongoose.Schema({ username: { type: String, unique: true }, password: { type: String }, fullName: String, role: String }));
 
-// --- API THỐNG KÊ (DASHBOARD) ---
+// --- API ---
 app.get("/api/thong-ke", async (req, res) => {
     try {
         const truongCount = await TruongHoc.countDocuments({ isDeleted: false });
@@ -60,7 +84,6 @@ app.get("/api/thong-ke", async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- HÀM GHI NHẬT KÝ TÁC NGHIỆP ---
 async function saveActionLog(req, action, detail) {
     try {
         const { username, fullName, role } = req.body.userAuth || {};
@@ -69,7 +92,6 @@ async function saveActionLog(req, action, detail) {
     } catch (e) { console.error("Lỗi log:", e); }
 }
 
-// --- 3. LOGIC TỰ ĐỘNG CHỐT SỔ (CRON JOB NGÀY 10) ---
 cron.schedule('0 0 10 * *', async () => {
     try {
         const danhSach = await TruongHoc.find({ isDeleted: false });
@@ -77,24 +99,18 @@ cron.schedule('0 0 10 * *', async () => {
         const label = `${now.getMonth() + 1}-${now.getFullYear()}`;
         for (let t of danhSach) {
             await new ArchiveTruongHoc({ originalId: t._id, thangChot: label, dataBackup: t.toObject() }).save();
-            await TruongHoc.findByIdAndUpdate(t._id, { 
-                trangThaiThi: "", noiDungKeHoach: "", ngayKeHoach: "", 
-                ghiChuThi: "", lichSuNhatKy: [] 
-            });
+            await TruongHoc.findByIdAndUpdate(t._id, { trangThaiThi: "", noiDungKeHoach: "", ngayKeHoach: "", ghiChuThi: "", lichSuNhatKy: [] });
         }
         console.log("📦 Đã tự động chốt sổ tháng mới!");
     } catch (e) { console.error("Lỗi Cron:", e); }
 });
 
-// --- 4. API HỆ THỐNG QUẢN LÝ TRƯỜNG ---
 app.get('/api/danh-sach-truong', async (req, res) => {
     try { res.json(await TruongHoc.find({ isDeleted: false })); } catch (e) { res.status(500).send(e.message); }
 });
-
 app.get('/api/lay-truong/:id', async (req, res) => {
     try { res.json(await TruongHoc.findById(req.params.id)); } catch (e) { res.status(404).send("Lỗi"); }
 });
-
 app.put('/api/sua-truong/:id', async (req, res) => {
     if (req.body.maBaoMat !== '888') return res.status(403).send("Sai mã!");
     try { 
@@ -104,7 +120,6 @@ app.put('/api/sua-truong/:id', async (req, res) => {
         res.send("OK"); 
     } catch (err) { res.status(500).send(err.message); }
 });
-
 app.post('/api/them-truong', async (req, res) => {
     if (req.body.maBaoMat !== '888') return res.status(403).send("Sai mã!");
     try { 
@@ -113,7 +128,6 @@ app.post('/api/them-truong', async (req, res) => {
         res.send("OK"); 
     } catch (err) { res.status(500).send(err.message); }
 });
-
 app.delete('/api/xoa-truong/:id', async (req, res) => {
     if (req.body.maBaoMat !== '888') return res.status(403).send("Sai mã!");
     try { 
@@ -127,63 +141,63 @@ app.delete('/api/xoa-truong/:id', async (req, res) => {
 app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
     const user = await User.findOne({ username, password });
-    if (user) res.json({ success: true, user: { id: user._id, fullName: user.fullName, role: user.role, username: user.username } });
-    else res.json({ success: false, message: "Sai tài khoản!" });
+    if (user) {
+        req.session.user = { id: user._id, fullName: user.fullName, role: user.role, username: user.username };
+        res.json({ success: true, user: req.session.user });
+    } else {
+        res.json({ success: false, message: "Sai tài khoản!" });
+    }
 });
 
-// --- 5. API ADMIN (NHÂN SỰ, ARCHIVE, TRASH) ---
+app.post('/api/logout', (req, res) => {
+    req.session.destroy(err => {
+        if (err) return res.status(500).send("Lỗi logout");
+        res.clearCookie('connect.sid');
+        res.json({ success: true });
+    });
+});
+
 app.get('/api/admin/list-users', async (req, res) => {
     try { res.json(await User.find({}, '-password')); } catch (e) { res.status(500).send(e.message); }
 });
-
 app.get('/api/admin/archive-months', async (req, res) => {
     try { 
         const months = await ArchiveTruongHoc.distinct("thangChot"); 
         res.json(months.reverse()); 
     } catch (e) { res.status(500).send(e.message); }
 });
-
 app.get('/api/admin/archive-data/:month', async (req, res) => {
     try { res.json(await ArchiveTruongHoc.find({ thangChot: req.params.month })); } catch (e) { res.status(500).send(e.message); }
 });
-
-// API CHỐT TAY QUAN TRỌNG
 app.post('/api/admin/force-archive', async (req, res) => {
     try {
         const danhSach = await TruongHoc.find({ isDeleted: false });
         const now = new Date();
         const label = `${now.getMonth() + 1}-${now.getFullYear()} (Chốt tay)`;
         for (let t of danhSach) {
-            await new ArchiveTruongHoc({ 
-                originalId: t._id, 
-                thangChot: label, 
-                dataBackup: t.toObject() 
-            }).save();
+            await new ArchiveTruongHoc({ originalId: t._id, thangChot: label, dataBackup: t.toObject() }).save();
         }
         res.send("OK"); 
     } catch (e) { res.status(500).send(e.message); }
 });
-
 app.get('/api/admin/trash', async (req, res) => {
     try { res.json(await TruongHoc.find({ isDeleted: true })); } catch (e) { res.status(500).send(e.message); }
 });
-
 app.post('/api/admin/restore/:id', async (req, res) => {
     try { 
         await TruongHoc.findByIdAndUpdate(req.params.id, { isDeleted: false }); 
         res.send("OK"); 
     } catch (e) { res.status(500).send(e.message); }
 });
-
 app.get('/api/admin/action-logs', async (req, res) => {
     try { res.json(await ActionLog.find().sort({ timestamp: -1 }).limit(100)); } catch (e) { res.status(500).send(e.message); }
 });
 
-// --- PHỤC VỤ FILE TĨNH ---
+// Phục vụ file tĩnh (sau khi đã qua middleware)
 app.use(express.static(__dirname));
+
+// Route mặc định
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'login.html')));
 app.get('/eduscheduler', (req, res) => res.sendFile(path.join(__dirname, 'eduscheduler.html')));
 
-app.listen(PORT, "0.0.0.0", () => 
-  console.log(`🚀 DIAMOND MASTER READY AT PORT ${PORT}!`)
-);
+app.listen(PORT, "0.0.0.0", () => console.log(`🚀 Server chạy tại http://localhost:${PORT}`));

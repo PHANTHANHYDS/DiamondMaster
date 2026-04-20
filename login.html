@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EduScheduler - Login Diamond</title>
+    <!-- CSS chung để ẩn body ban đầu (sẽ được auth-check.js hiện lại nếu cần) -->
+    <link rel="stylesheet" href="common.css">
+    <!-- Auth check - bỏ qua trang login -->
+    <script src="auth-check.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>    
@@ -149,14 +153,14 @@
             background: #432de0;
             box-shadow: 0 8px 25px rgba(78, 54, 245, 0.4);
         }
-        /* Style cho Swal để đồng bộ với theme tối của bố */
+        /* Style cho Swal để đồng bộ với theme tối */
         .swal2-popup {
             background: #2a2a40 !important;
             color: #fff !important;
             border-radius: 20px !important;
         }
     </style>
-<link rel="icon" type="image/png" href="logo-avs.png">
+    <link rel="icon" type="image/png" href="logo-avs.png">
 </head>
 <body>
 
@@ -202,7 +206,7 @@
                     title: 'Thiếu thông tin',
                     text: 'Vui lòng nhập đủ tài khoản và mật khẩu!',
                     confirmButtonColor: '#4e36f5',
-                    heightAuto: false // CHỐNG DỰT KHUNG
+                    heightAuto: false
                 });
                 return;
             }
@@ -211,12 +215,14 @@
                 const res = await fetch('/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',   // Quan trọng: gửi kèm cookie session
                     body: JSON.stringify({ username: u, password: p })
                 });
 
                 const data = await res.json();
 
                 if (data.success) {
+                    // Lưu thông tin user vào localStorage (vẫn giữ để frontend dùng)
                     localStorage.setItem('userDiamond', JSON.stringify(data.user));
                     
                     let titleName = "Nhân viên";
@@ -231,7 +237,7 @@
                         timer: 1200,
                         showConfirmButton: false,
                         timerProgressBar: true,
-                        heightAuto: false // CHỐNG DỰT KHUNG
+                        heightAuto: false
                     }).then(() => {
                         window.location.href = 'quan-ly.html';
                     });
@@ -241,16 +247,17 @@
                         title: 'Thất bại',
                         text: data.message || 'Tài khoản hoặc mật khẩu không chính xác!',
                         confirmButtonColor: '#4e36f5',
-                        heightAuto: false // CHỐNG DỰT KHUNG
+                        heightAuto: false
                     });
                 }
             } catch (err) {
+                console.error("Lỗi kết nối:", err);
                 Swal.fire({
                     icon: 'error',
                     title: 'Lỗi',
                     text: 'Không thể kết nối đến hệ thống server!',
                     confirmButtonColor: '#4e36f5',
-                    heightAuto: false // CHỐNG DỰT KHUNG
+                    heightAuto: false
                 });
             }
         }
@@ -260,17 +267,15 @@
         });
     </script>
     <script>
-    // 1. Chặn chuột phải hoàn toàn
-    document.addEventListener('contextmenu', e => e.preventDefault());
-
-    // 2. Chặn các phím tắt 'soi code' (F12, Ctrl+Shift+I, Ctrl+U...)
-    document.onkeydown = function(e) {
-        if (e.keyCode == 123 || 
-           (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74)) || 
-           (e.ctrlKey && e.keyCode == 85)) {
-            return false;
-        }
-    };
-</script>
+        // Chặn chuột phải và phím tắt xem mã nguồn
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.onkeydown = function(e) {
+            if (e.keyCode == 123 || 
+               (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74)) || 
+               (e.ctrlKey && e.keyCode == 85)) {
+                return false;
+            }
+        };
+    </script>
 </body>
 </html>
